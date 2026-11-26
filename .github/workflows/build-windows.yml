@@ -1,0 +1,41 @@
+name: Build BatteryDesk for Windows
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Show .NET SDK
+        run: dotnet --info
+
+      - name: Restore
+        run: dotnet restore BatteryDesk.slnx
+
+      - name: Build
+        run: dotnet build BatteryDesk.slnx --configuration Release --no-restore
+
+      - name: Publish self-contained Windows x64 app
+        run: dotnet publish BatteryDesk.App/BatteryDesk.App.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false --output artifacts/publish
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: BatteryDesk-windows-x64
+          path: artifacts/publish/
+          if-no-files-found: error
+          retention-days: 14
