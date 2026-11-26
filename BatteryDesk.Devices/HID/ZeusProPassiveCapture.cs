@@ -36,7 +36,7 @@ public sealed class ZeusProPassiveCapture
     private const uint FileFlagOverlapped = 0x40000000;
     private const int MaxFramesPerInterface = 512;
 
-    private static readonly HashSet<ushort> CapturedUsagePages = [0xF100, 0x000C, 0x000B];
+    private static readonly HashSet<ushort> CapturedUsagePages = [0xF100];
 
     public async Task<HidPassiveCaptureResult> CaptureAsync(
         IReadOnlyCollection<HidDeviceInfo> interfaces,
