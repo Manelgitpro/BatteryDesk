@@ -1,4 +1,4 @@
-# BatteryDesk v0.5.1
+# BatteryDesk v0.6.0
 
 Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, para identificar periféricos e consultar níveis reais de bateria quando seus protocolos permitem.
 
@@ -15,8 +15,23 @@ Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, para id
 - Consulta de bateria do **Delux M800 Pro pelo receptor USB de 2,4 GHz** (VID:PID `248A:5B2F`).
 - Exibição de percentual e estado de carga quando o receptor responde com dados válidos.
 - **Captura HID passiva do Redragon Zeus Pro H510-PRO** (VID:PID `040B:0897`), limitada exclusivamente à coleção proprietária do fabricante `F100`.
+- Cronômetro estimativo de carga do Zeus Pro: inicia quando o Windows detecta a interface USB-C `H510-PRO USB Gaming Headset`, mostra contagem regressiva baseada em aproximadamente 3 horas e encerra quando o cabo é removido.
+- Persistência local do início da sessão para manter a contagem após reiniciar o BatteryDesk, com indicação explícita quando não foi possível observar a remoção do cabo.
 - Gravação dos relatórios HID de entrada recebidos em arquivo local para análise do protocolo.
 
+## Cronômetro estimativo de carga do Zeus Pro
+
+A ficha técnica internacional publicada pela Redragon informa carregamento em aproximadamente 3 horas e autonomia de até 18 horas. A página brasileira oficial confirma o modelo H510-PRO e o cabo USB-C, mas não publica a capacidade em mAh. Por isso, o BatteryDesk usa apenas a referência temporal aproximada de 3 horas; não assume capacidade de bateria nem apresenta uma porcentagem real.
+
+O timer:
+- detecta a presença da interface HID `H510-PRO USB Gaming Headset` (VID:PID `040B:0897`), diferenciando-a do receptor sem fio pelo nome do produto;
+- inicia a contagem quando a interface USB-C é conectada e encerra quando é removida;
+- exibe a contagem regressiva até a referência de 3 horas e avisa quando esse tempo é alcançado;
+- possui botão para zerar o ciclo; com o cabo conectado, reinicia a contagem a partir do momento do clique;
+- persiste os horários localmente em `%LOCALAPPDATA%\BatteryDesk\ZeusProChargeSession.json`;
+- somente observa eventos de conexão do Windows e enumera descritores HID com acesso de leitura; não lê relatórios de entrada/saída nem envia comandos ao headset.
+
+O tempo de 3 horas é uma estimativa anunciada pela marca, não uma confirmação de 100%. Se o BatteryDesk for fechado enquanto o cabo for removido, o instante exato da remoção não pode ser recuperado; a interface sinaliza a sessão como interrompida e pede para zerar o ciclo.
 ## Investigação do Redragon Zeus Pro H510-PRO
 
 A captura passiva pode ser iniciada após uma varredura que encontre a coleção proprietária HID `0xF100`. No primeiro teste, deixe o headset em repouso durante os 30 segundos, sem pressionar botões: queremos registrar somente o que ele transmite espontaneamente.
@@ -75,7 +90,7 @@ O workflow **Build BatteryDesk for Windows** compila e publica uma versão autoc
 
 ## Próximas etapas
 
-1. Analisar os relatórios HID recebidos durante ações físicas no H510-PRO.
-2. Se o canal HID não trouxer dados, comparar uma captura USBPcap para inspecionar também transferências de controle/saída.
-3. Validar qualquer estrutura candidata com mais de um estado conhecido de bateria, sem apresentar inferências como leitura real.
+1. Validar no computador que a detecção da interface USB-C inicia e encerra o cronômetro do H510-PRO corretamente.
+2. Refinar a identificação do dispositivo caso o Windows apresente uma variação no nome da interface.
+3. Continuar a investigação de protocolos reais de bateria somente quando houver documentação suficiente e sem enviar comandos desconhecidos.
 4. Implementar adaptadores adicionais para fabricantes e modelos documentados.
