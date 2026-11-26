@@ -20,7 +20,7 @@ public partial class MainWindow : Window
     {
         RefreshButton.IsEnabled = false;
         StatusText.Text = "Procurando dispositivos...";
-        StatusDetailText.Text = "Enumerando interfaces HID e consultando apenas o protocolo conhecido do receptor Delux M800 Pro.";
+        StatusDetailText.Text = "Lendo descritores HID, identificando coleções, interfaces e tamanhos dos relatórios.";
 
         try
         {
@@ -29,14 +29,21 @@ public partial class MainWindow : Window
                 .Where(device => device.VendorId == 0x248A && device.ProductId == 0x5B2F)
                 .ToArray();
 
+            var keyboardInterfaces = found
+                .Where(device => device.VendorId == 0x1A2C && device.ProductId == 0x9605)
+                .GroupBy(device => device.PhysicalGroupKey)
+                .Select(group => group.ToArray())
+                .ToArray();
+
             DeluxM800BatteryResult? deluxReading = null;
             if (deluxInterfaces.Length > 0)
                 deluxReading = await Task.Run(() => _deluxReader.Read(deluxInterfaces));
 
             _devices.Clear();
 
-            // Collapse the receiver's multiple HID top-level collections into one physical-device card.
             var deluxGroupAdded = false;
+            var keyboardGroupsAdded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var device in found)
             {
                 var isDelux = device.VendorId == 0x248A && device.ProductId == 0x5B2F;
@@ -51,11 +58,30 @@ public partial class MainWindow : Window
                     continue;
                 }
 
+                var isSemicoKeyboard = device.VendorId == 0x1A2C && device.ProductId == 0x9605;
+                if (isSemicoKeyboard)
+                {
+                    var groupKey = device.PhysicalGroupKey;
+                    if (!keyboardGroupsAdded.Add(groupKey))
+                        continue;
+
+                    var group = keyboardInterfaces.FirstOrDefault(g =>
+                        g.Any(item => string.Equals(item.PhysicalGroupKey, groupKey, StringComparison.OrdinalIgnoreCase)));
+
+                    if (group is { Length: > 0 })
+                        _devices.Add(DeviceRow.FromKeyboardGroup(group));
+                    continue;
+                }
+
                 _devices.Add(DeviceRow.From(device));
             }
 
             DeviceCountText.Text = $"{found.Count} interfaces · {_devices.Count} dispositivos";
             LastScanText.Text = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+
+            var keyboardSummary = keyboardInterfaces.Length > 0
+                ? $" Teclado SEMICO: {keyboardInterfaces.Sum(group => group.Length)} coleções/interfaces analisadas."
+                : " Teclado SEMICO não conectado nesta varredura.";
 
             if (deluxInterfaces.Length > 0 && deluxReading?.Percent is int percent)
             {
@@ -63,12 +89,12 @@ public partial class MainWindow : Window
                     ? "carga completa"
                     : deluxReading.IsCharging ? "carregando" : "descarregando";
                 StatusText.Text = $"Delux M800 Pro: {percent}%";
-                StatusDetailText.Text = $"Leitura recebida diretamente pelo receptor USB de 2,4 GHz ({chargeState}).";
+                StatusDetailText.Text = $"Leitura recebida pelo receptor 2,4 GHz ({chargeState}).{keyboardSummary}";
             }
             else if (deluxInterfaces.Length > 0)
             {
                 StatusText.Text = "Receptor Delux identificado";
-                StatusDetailText.Text = "O receptor 2,4 GHz foi encontrado, mas ainda não respondeu à consulta. Deixe o mouse ligado e conectado ao receptor e tente novamente.";
+                StatusDetailText.Text = "O receptor 2,4 GHz foi encontrado, mas ainda não respondeu à consulta." + keyboardSummary;
             }
             else
             {
@@ -77,7 +103,7 @@ public partial class MainWindow : Window
                     : "Descoberta concluída";
                 StatusDetailText.Text = found.Count == 0
                     ? "O Windows não retornou interfaces HID presentes. Verifique as conexões."
-                    : $"Foram encontradas {found.Count} interfaces HID. A consulta de bateria pelo receptor Delux não foi executada porque ele não está conectado.";
+                    : $"Foram encontradas {found.Count} interfaces HID. Nenhum comando de leitura de bateria do Delux foi executado." + keyboardSummary;
             }
         }
         catch (Exception exception)
