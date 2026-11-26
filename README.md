@@ -1,31 +1,42 @@
-# BatteryDesk
+# BatteryDesk v0.2.0
 
-Aplicativo desktop para Windows 10/11 que busca monitorar a bateria de periféricos sem fio, como headsets, mouses, teclados e controles.
+Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, com foco em identificar periféricos sem fio e, nas próximas etapas, monitorar níveis reais de bateria.
 
-## Objetivos
+## O que está implementado nesta versão
 
-- Detectar dispositivos conectados por USB/HID e Bluetooth.
-- Exibir informações reais de bateria quando o dispositivo/protocolo permitir.
-- Manter histórico de níveis e oferecer notificações.
-- Disponibilizar interface escura, bandeja do sistema e inicialização com o Windows.
-- Informar claramente quando o nível de bateria não estiver disponível.
+- Interface desktop em modo escuro.
+- Descoberta local de interfaces HID presentes no Windows.
+- Leitura de VID, PID, revisão, fabricante, produto e número de série quando disponibilizados pelo dispositivo.
+- Atualização manual da lista de dispositivos.
+- Descoberta em modo somente leitura: não envia Output Reports nem Feature Reports, não instala drivers, não usa rede e não solicita elevação.
 
-> **Compatibilidade honesta:** detectar um dispositivo HID não significa que seja possível consultar sua bateria. Muitos fabricantes usam protocolos proprietários. O BatteryDesk não deve inventar percentuais nem enviar comandos de escrita ao dispositivo durante a descoberta.
+## Limitações conhecidas
 
-## Estado atual
+- Ainda não consulta porcentagem de bateria.
+- Bluetooth GATT / Battery Service (0x180F) ainda não foi implementado.
+- A lista pode incluir interfaces internas do computador e múltiplas interfaces pertencentes ao mesmo periférico.
+- Detectar uma interface HID não garante que o dispositivo exponha sua bateria ao Windows.
+- Protocolos proprietários exigirão pesquisa, validação e adaptadores específicos por fabricante/modelo.
 
-Esta é a estrutura inicial do repositório. A implementação de leitura de bateria, suporte Bluetooth/GATT, histórico e notificações será adicionada e validada incrementalmente.
+O BatteryDesk não deve exibir percentuais fictícios como se fossem leituras reais.
 
-## Requisitos de desenvolvimento
+## Executar no Windows
 
-- .NET 10 SDK
-- Windows 10 ou Windows 11
-- Para executar localmente: `dotnet run --project .\src\BatteryDesk.App\BatteryDesk.App.csproj`
+Requer Windows 10/11 e .NET 10 SDK. Abra o PowerShell na pasta do projeto e execute:
 
-## Compilação
+```powershell
+dotnet run --project .\BatteryDesk.App\BatteryDesk.App.csproj
+```
 
-O workflow do GitHub Actions compila e publica uma versão Windows x64 autocontida. O executável será disponibilizado como artefato da execução quando o build terminar com sucesso.
+## Gerar o executável
 
-## Privacidade e segurança
+O workflow **Build BatteryDesk for Windows** compila e publica uma versão autocontida para Windows x64 em cada push para `main` e também pode ser iniciado manualmente pela aba Actions.
 
-A descoberta inicial é somente leitura. O aplicativo não coleta nem envia informações pessoais ou dados dos dispositivos para servidores externos.
+Quando o workflow terminar com sucesso, o artefato `BatteryDesk-windows-x64` ficará disponível para download na execução por 14 dias.
+
+## Próximas etapas
+
+1. Validar a identificação HID com dispositivos físicos.
+2. Implementar leitura Bluetooth GATT do serviço padrão de bateria.
+3. Investigar protocolos documentados dos fabricantes e criar adaptadores específicos.
+4. Adicionar histórico, notificações e integração com a bandeja do sistema.
