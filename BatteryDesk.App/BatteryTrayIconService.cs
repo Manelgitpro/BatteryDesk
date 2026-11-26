@@ -161,7 +161,8 @@ internal sealed class BatteryTrayIconService : IDisposable
             }
             else
             {
-                graphics.DrawRoundedRectangle(devicePen, 8, 2, 16, 25, 7);
+                using var mousePath = RoundedRectangle(new Rectangle(8, 2, 16, 25), 7);
+                graphics.DrawPath(devicePen, mousePath);
                 graphics.DrawLine(devicePen, 16, 4, 16, 12);
                 graphics.DrawLine(devicePen, 12, 12, 20, 12);
                 graphics.FillEllipse(accentBrush, 14, 6, 4, 4);
@@ -188,7 +189,7 @@ internal sealed class BatteryTrayIconService : IDisposable
         var hIcon = bitmap.GetHicon();
         try
         {
-            using var borrowed = DrawingIcon.FromHandle(hIcon);
+            var borrowed = DrawingIcon.FromHandle(hIcon);
             return (DrawingIcon)borrowed.Clone();
         }
         finally
