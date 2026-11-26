@@ -153,12 +153,17 @@
                 <Border Background="#172B2B" BorderBrush="#285348" BorderThickness="1"
                         CornerRadius="16" Padding="18" Margin="0,16,0,0">
                     <StackPanel>
-                        <TextBlock Text="PRÓXIMA ETAPA" Foreground="{StaticResource Accent}"
+                        <TextBlock Text="INVESTIGAÇÃO DO ZEUS PRO" Foreground="{StaticResource Accent}"
                                    FontSize="10" FontWeight="Bold" />
-                        <TextBlock Text="Próximo: analisar protocolos do teclado" FontSize="15"
+                        <TextBlock Text="Captura passiva do protocolo USB" FontSize="15"
                                    FontWeight="SemiBold" Margin="0,7,0,4" />
-                        <TextBlock Text="A varredura do teclado é somente de leitura. Não envia comandos de configuração nem altera iluminação, macros ou firmware."
+                        <TextBlock Text="Registra somente relatórios HID de entrada nas coleções proprietária, multimídia e telefonia do H510-PRO. Não envia comandos ao headset."
                                    TextWrapping="Wrap" Foreground="#B7C9C5" FontSize="12" />
+                        <Button x:Name="CaptureZeusButton" Content="Capturar relatórios por 30 segundos"
+                                Click="CaptureZeus_Click" IsEnabled="False" Margin="0,13,0,8" />
+                        <TextBlock x:Name="ZeusCaptureStatusText"
+                                   Text="Faça uma varredura para localizar a coleção proprietária 0xF100."
+                                   TextWrapping="Wrap" Foreground="#B7C9C5" FontSize="11" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -167,7 +172,7 @@
         <DockPanel Grid.Row="5" Margin="0,18,0,0">
             <TextBlock Text="BatteryDesk · Descoberta USB/HID local"
                        Foreground="{StaticResource TextMuted}" FontSize="11" />
-            <TextBlock Text="v0.4.0 · Windows" Foreground="{StaticResource TextMuted}"
+            <TextBlock Text="v0.5.0 · Windows" Foreground="{StaticResource TextMuted}"
                        FontSize="11" DockPanel.Dock="Right" />
         </DockPanel>
     </Grid>
