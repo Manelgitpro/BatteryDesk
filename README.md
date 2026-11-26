@@ -1,42 +1,40 @@
-# BatteryDesk v0.2.0
+# BatteryDesk v0.3.0
 
-Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, com foco em identificar periféricos sem fio e, nas próximas etapas, monitorar níveis reais de bateria.
+Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, para identificar periféricos sem fio e consultar níveis reais de bateria quando seus protocolos permitem.
 
-## O que está implementado nesta versão
+## O que está implementado
 
 - Interface desktop em modo escuro.
-- Descoberta local de interfaces HID presentes no Windows.
-- Leitura de VID, PID, revisão, fabricante, produto e número de série quando disponibilizados pelo dispositivo.
-- Atualização manual da lista de dispositivos.
-- Descoberta em modo somente leitura: não envia Output Reports nem Feature Reports, não instala drivers, não usa rede e não solicita elevação.
+- Descoberta local de interfaces USB/HID.
+- Leitura de VID, PID, revisão, fabricante, produto e número de série quando disponibilizados.
+- Agrupamento das interfaces HID do receptor Delux M800 Pro para evitar cartões duplicados.
+- Consulta de bateria do **Delux M800 Pro pelo receptor USB de 2,4 GHz** (VID:PID `248A:5B2F`).
+- Exibição de percentual e estado de carga quando o receptor responde com dados válidos.
+- Consulta direcionada somente à coleção HID correspondente ao uso `FF00:0001` e ao receptor conhecido.
+- Descoberta local; não usa rede nem instala drivers.
 
-## Limitações conhecidas
+## Compatibilidade e limitações
 
-- Ainda não consulta porcentagem de bateria.
-- Bluetooth GATT / Battery Service (0x180F) ainda não foi implementado.
-- A lista pode incluir interfaces internas do computador e múltiplas interfaces pertencentes ao mesmo periférico.
-- Detectar uma interface HID não garante que o dispositivo exponha sua bateria ao Windows.
-- Protocolos proprietários exigirão pesquisa, validação e adaptadores específicos por fabricante/modelo.
+- O leitor de bateria 2,4 GHz desta versão é específico para o receptor Delux M800 Pro.
+- O protocolo usa Feature Report `0C` e valida o identificador e a estrutura da resposta antes de apresentar percentual.
+- A consulta não altera configurações do mouse; é uma solicitação de estado/bateria ao receptor.
+- Outros periféricos aparecem na descoberta HID, mas ainda não têm leitura de bateria implementada.
+- Interfaces HID podem pertencer ao próprio computador ou ser coleções diferentes de um mesmo receptor.
+- Encontrar um VID/PID não garante, por si só, suporte à bateria; modelos diferentes exigem protocolos próprios.
 
-O BatteryDesk não deve exibir percentuais fictícios como se fossem leituras reais.
+O BatteryDesk não deve apresentar percentuais fictícios como se fossem leituras reais.
 
 ## Executar no Windows
 
-Requer Windows 10/11 e .NET 10 SDK. Abra o PowerShell na pasta do projeto e execute:
+Requer Windows 10/11. O executável publicado pelo workflow é autocontido e não exige instalar o .NET.
 
-```powershell
-dotnet run --project .\BatteryDesk.App\BatteryDesk.App.csproj
-```
+## Compilar
 
-## Gerar o executável
-
-O workflow **Build BatteryDesk for Windows** compila e publica uma versão autocontida para Windows x64 em cada push para `main` e também pode ser iniciado manualmente pela aba Actions.
-
-Quando o workflow terminar com sucesso, o artefato `BatteryDesk-windows-x64` ficará disponível para download na execução por 14 dias.
+O workflow **Build BatteryDesk for Windows** compila e publica uma versão autocontida para Windows x64 em cada push para `main`. O artefato `BatteryDesk-windows-x64` fica disponível na execução do GitHub Actions por 14 dias.
 
 ## Próximas etapas
 
-1. Validar a identificação HID com dispositivos físicos.
-2. Implementar leitura Bluetooth GATT do serviço padrão de bateria.
-3. Investigar protocolos documentados dos fabricantes e criar adaptadores específicos.
-4. Adicionar histórico, notificações e integração com a bandeja do sistema.
+1. Validar a leitura do Delux M800 Pro em diferentes níveis de bateria e durante o carregamento.
+2. Investigar a leitura de bateria do headset Redragon Zeus Pro pelo receptor 2,4 GHz.
+3. Implementar adaptadores adicionais para fabricantes e modelos documentados.
+4. Adicionar histórico, notificações, bandeja do sistema e inicialização com o Windows.
