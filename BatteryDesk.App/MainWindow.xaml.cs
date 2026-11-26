@@ -250,7 +250,7 @@ public partial class MainWindow : Window
                 var completionTime = startedAt.Value.Add(estimate).ToLocalTime().ToString("HH:mm");
                 ZeusChargeDetailText.Text =
                     $"Tempo de referência da Redragon: aproximadamente 3 horas. Previsão de conclusão às {completionTime}. " +
-                    "É uma estimativa por tempo, não uma leitura da bateria.";
+                    "Estimativa supõe que a carga começou próxima de 0%; não é uma leitura da bateria.";
                 if (_zeusChargeSession.StartedAtAppLaunch)
                 {
                     ZeusChargeDetailText.Text +=
@@ -262,7 +262,7 @@ public partial class MainWindow : Window
                 ZeusChargeStatusText.Text = "Tempo estimado de carga alcançado";
                 ZeusChargeTimerText.Text = "00:00:00";
                 ZeusChargeDetailText.Text =
-                    "A referência de aproximadamente 3 horas foi alcançada. Isso não confirma 100% de carga. Confira o indicador do headset e desconecte o USB quando confirmar.";
+                    "A referência de aproximadamente 3 horas foi alcançada. O modelo supõe início próximo de 0%; isso não confirma 100% de carga. Confira o indicador do headset.";
             }
         }
         else if (_zeusChargeSession.EndedAt.HasValue)
