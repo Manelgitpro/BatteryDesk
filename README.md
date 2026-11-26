@@ -1,4 +1,4 @@
-# BatteryDesk v0.5.0
+# BatteryDesk v0.5.1
 
 Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, para identificar periféricos e consultar níveis reais de bateria quando seus protocolos permitem.
 
@@ -33,6 +33,25 @@ A captura:
 - não registra caminho HID nem número de série no arquivo.
 
 A captura de entrada é uma primeira etapa de descoberta. Ela não observa, por si só, todos os transfers USB de saída/controle e não garante que a bateria seja transmitida espontaneamente. Se não houver relatórios, o próximo passo de baixo risco é uma captura USBPcap/Wireshark durante as ações físicas do headset. Como o site oficial brasileiro informa que o H510-PRO não possui software próprio, não há atualmente um aplicativo oficial conhecido para gerar e capturar uma consulta de bateria.
+
+## Contrato de segurança do projeto (obrigatório)
+
+O BatteryDesk nunca deve executar operações destinadas a alterar um periférico. É proibido implementar gravação ou mudança de configurações, firmware, memória, macros, iluminação, volume interno, modos, pareamento ou estado persistente.
+
+### Operações permitidas
+- Enumerar dispositivos e ler descritores, identificadores e capacidades HID quando o usuário inicia a varredura.
+- Ler relatórios HID de entrada passivamente, somente após ação explícita do usuário.
+- Ler informações de telemetria publicadas pelo Windows.
+- Enviar a solicitação de telemetria de bateria documentada do Delux M800 Pro somente após uma confirmação explícita em cada varredura. Se o usuário negar, nenhum pacote é enviado.
+
+### Operações proibidas
+- Alterar configurações, perfis, macros, iluminação, volume interno, modos, memória ou pareamento do periférico.
+- Gravar ou atualizar firmware, executar reset ou mudar modos de conexão.
+- Enviar Output Reports, comandos de configuração ou Feature Reports desconhecidos.
+- Executar captura, leitura ativa ou varredura automaticamente/em segundo plano, sem ação e consentimento explícitos.
+- Interpretar tráfego desconhecido como autorização para enviar comandos.
+
+Toda integração nova deve documentar VID/PID, coleção, report ID, direção, formato e finalidade. Qualquer comunicação ativa exige confirmação clara, específica e com opção negativa como padrão. Nenhuma operação que altere o periférico pode ser adicionada, mesmo com confirmação.
 
 ## Segurança e limites da varredura
 
