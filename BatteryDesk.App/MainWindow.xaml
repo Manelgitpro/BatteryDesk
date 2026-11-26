@@ -115,7 +115,8 @@
                 </DockPanel>
             </Border>
 
-            <StackPanel Grid.Column="2">
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
                 <Border Background="{StaticResource PanelBg}" BorderBrush="{StaticResource BorderBrushSoft}"
                         BorderThickness="1" CornerRadius="18" Padding="21">
                     <StackPanel>
@@ -150,6 +151,31 @@
                     </StackPanel>
                 </Border>
 
+                <Border Background="#1A3038" BorderBrush="#315363" BorderThickness="1"
+                        CornerRadius="16" Padding="18" Margin="0,16,0,0">
+                    <StackPanel>
+                        <TextBlock Text="CARREGAMENTO DO ZEUS PRO" Foreground="{StaticResource Accent}"
+                                   FontSize="10" FontWeight="Bold" />
+                        <TextBlock x:Name="ZeusChargeStatusText" Text="Aguardando conexão USB-C..."
+                                   FontSize="15" FontWeight="SemiBold" Margin="0,8,0,4"
+                                   TextWrapping="Wrap" />
+                        <TextBlock x:Name="ZeusChargeTimerText" Text="--:--:--" FontSize="30"
+                                   FontWeight="Bold" Foreground="{StaticResource TextPrimary}"
+                                   Margin="0,6,0,2" />
+                        <TextBlock x:Name="ZeusChargeProgressText" Text="Tempo decorrido: aguardando início"
+                                   FontSize="11" Foreground="#B7C9C5" Margin="0,0,0,8" />
+                        <ProgressBar x:Name="ZeusChargeProgressBar" Minimum="0" Maximum="100"
+                                     Value="0" Height="8" />
+                        <TextBlock x:Name="ZeusChargeDetailText"
+                                   Text="Ao conectar o H510-PRO USB-C ao computador, a contagem de referência começa automaticamente."
+                                   FontSize="11" Foreground="#B7C9C5" TextWrapping="Wrap"
+                                   Margin="0,10,0,0" />
+                        <Button x:Name="ResetZeusChargeButton" Content="Resetar ciclo"
+                                Click="ResetZeusCharge_Click" IsEnabled="False"
+                                Margin="0,13,0,0" />
+                    </StackPanel>
+                </Border>
+
                 <Border Background="#172B2B" BorderBrush="#285348" BorderThickness="1"
                         CornerRadius="16" Padding="18" Margin="0,16,0,0">
                     <StackPanel>
@@ -166,13 +192,14 @@
                                    TextWrapping="Wrap" Foreground="#B7C9C5" FontSize="11" />
                     </StackPanel>
                 </Border>
-            </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
 
         <DockPanel Grid.Row="5" Margin="0,18,0,0">
             <TextBlock Text="BatteryDesk · Descoberta USB/HID local"
                        Foreground="{StaticResource TextMuted}" FontSize="11" />
-            <TextBlock Text="v0.5.1 · Windows" Foreground="{StaticResource TextMuted}"
+            <TextBlock Text="v0.6.0 · Windows" Foreground="{StaticResource TextMuted}"
                        FontSize="11" DockPanel.Dock="Right" />
         </DockPanel>
     </Grid>
