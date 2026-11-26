@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BatteryDesk</RootNamespace>
+    <AssemblyName>BatteryDesk</AssemblyName>
+    <Version>0.2.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BatteryDesk.Core\BatteryDesk.Core.csproj" />
+    <ProjectReference Include="..\BatteryDesk.Devices\BatteryDesk.Devices.csproj" />
+  </ItemGroup>
+</Project>
