@@ -20,13 +20,18 @@ Nenhuma comunicação ativa com um periférico pode ocorrer sem ação explícit
 | Output Reports para periféricos | Proibido |
 | Feature Reports de configuração ou desconhecidos | Proibido |
 | Escrita, reset, firmware, macros, iluminação, pareamento ou mudança de modo | Proibido |
-| Captura, consulta ou varredura em segundo plano sem solicitação | Proibido |
+| Captura, consulta ativa ou varredura geral em segundo plano sem solicitação | Proibido |
+| Detectar presença do USB-C do Zeus após notificação de alteração do Windows | Permitido somente para o timer local, consultando descritores HID com acesso desejado zero; não lê relatórios nem envia pacotes |
 
 ## Exceção estreita: telemetria do Delux
 
 O leitor do Delux M800 Pro usa o Feature Report 0C 01 20 exclusivamente para solicitar telemetria de bateria do receptor identificado por VID/PID 248A:5B2F e coleção HID FF00:0001. O envio exige explicitamente o argumento explicitlyAuthorizedByUser=true, valor que só pode ser passado após confirmação afirmativa exibida ao usuário em cada varredura.
 
 Esse pedido não é um comando de configuração conhecido. Mesmo assim, por envolver envio de dados ao dispositivo, ele não roda sem consentimento explícito. A opção padrão da confirmação é Não.
+
+## Ícones na área de notificação
+
+Os ícones da bandeja consomem somente valores já disponíveis no aplicativo. O ícone do Delux apresenta a última leitura obtida após confirmação explícita; ele não dispara consulta ativa nem faz polling em segundo plano. O ícone do Zeus usa somente a estimativa temporal salva localmente. As preferências e o último percentual autorizado do Delux são gravados localmente; nenhum dado é enviado ao periférico por causa dos ícones.
 
 ## Monitoramento estimativo de carga do Zeus Pro
 
