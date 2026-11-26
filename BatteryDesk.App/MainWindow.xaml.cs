@@ -1,6 +1,8 @@
 using BatteryDesk.Devices.HID;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
+using MessageBox = System.Windows.MessageBox;
 using System.Windows.Interop;
 using System.Windows.Threading;
 
@@ -14,17 +16,34 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<DeviceRow> _devices = new();
     private readonly ZeusChargeSession _zeusChargeSession = new();
     private readonly DispatcherTimer _zeusChargeDisplayTimer = new();
+    private readonly TrayPreferencesStore _trayPreferencesStore = new();
+    private readonly BatteryTrayIconService _trayIconService = new();
+    private readonly TrayPreferences _trayPreferences;
     private IReadOnlyList<HidDeviceInfo> _zeusInterfaces = Array.Empty<HidDeviceInfo>();
     private HwndSource? _windowSource;
     private bool _devicePresenceCheckRunning;
+    private bool _initializingTrayOptions = true;
+    private bool _allowExit;
 
     private const int WmDeviceChange = 0x0219;
     private const int DbtDevNodesChanged = 0x0007;
 
     public MainWindow()
     {
+        _trayPreferences = _trayPreferencesStore.Load();
+
         InitializeComponent();
         DevicesList.ItemsSource = _devices;
+
+        ShowDeluxInTrayCheckBox.IsChecked = _trayPreferences.ShowDeluxMouse;
+        ShowZeusInTrayCheckBox.IsChecked = _trayPreferences.ShowZeusHeadset;
+        _initializingTrayOptions = false;
+
+        _trayIconService.ShowRequested += Tray_ShowRequested;
+        _trayIconService.ExitRequested += Tray_ExitRequested;
+        Closing += MainWindow_Closing;
+        StateChanged += MainWindow_StateChanged;
+        UpdateTrayIcons();
 
         _zeusChargeDisplayTimer.Interval = TimeSpan.FromSeconds(1);
         _zeusChargeDisplayTimer.Tick += (_, _) => UpdateZeusChargeUi();
@@ -44,7 +63,83 @@ public partial class MainWindow : Window
     {
         _zeusChargeDisplayTimer.Stop();
         _windowSource?.RemoveHook(WindowProc);
+        _trayIconService.Dispose();
         base.OnClosed(e);
+    }
+
+    private bool HasSelectedTrayIcons =>
+        _trayPreferences.ShowDeluxMouse || _trayPreferences.ShowZeusHeadset;
+
+    private void TraySelection_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializingTrayOptions)
+            return;
+
+        _trayPreferences.ShowDeluxMouse = ShowDeluxInTrayCheckBox.IsChecked == true;
+        _trayPreferences.ShowZeusHeadset = ShowZeusInTrayCheckBox.IsChecked == true;
+        _trayPreferencesStore.Save(_trayPreferences);
+        UpdateTrayIcons();
+    }
+
+    private void UpdateTrayIcons()
+    {
+        var now = DateTimeOffset.Now;
+        var zeusPercent = _zeusChargeSession.GetEstimatedBatteryPercent(now);
+        var zeusDescription = _zeusChargeSession.WasInterruptedWhileAppClosed
+            ? "sessão de carga interrompida"
+            : _zeusChargeSession.IsUsbConnected
+                ? "estimativa durante a carga"
+                : _zeusChargeSession.EndedAt.HasValue
+                    ? "estimativa após desconectar; supõe uso contínuo"
+                    : "sem sessão de carga registrada";
+
+        _trayIconService.Update(
+            _trayPreferences,
+            _trayPreferences.LastDeluxBatteryPercent,
+            _trayPreferences.LastDeluxReadingAt,
+            zeusPercent,
+            zeusDescription);
+    }
+
+    private void Tray_ShowRequested()
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+        });
+    }
+
+    private void Tray_ExitRequested()
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            _allowExit = true;
+            Close();
+        });
+    }
+
+    private void MainWindow_Closing(object? sender, CancelEventArgs e)
+    {
+        if (_allowExit)
+            return;
+
+        if (HasSelectedTrayIcons)
+        {
+            e.Cancel = true;
+            Hide();
+        }
+        else
+        {
+            _allowExit = true;
+        }
+    }
+
+    private void MainWindow_StateChanged(object? sender, EventArgs e)
+    {
+        if (WindowState == WindowState.Minimized && HasSelectedTrayIcons)
+            Hide();
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -80,6 +175,7 @@ public partial class MainWindow : Window
                 _zeusChargeSession.SetUsbConnected(cableConnected, DateTimeOffset.Now);
 
             UpdateZeusChargeUi();
+            UpdateTrayIcons();
         }
         catch (Exception exception)
         {
@@ -116,6 +212,7 @@ public partial class MainWindow : Window
             ZeusChargeProgressBar.Value = 0;
             ZeusChargeDetailText.Text =
                 "Conecte o H510-PRO ao computador pelo cabo USB-C. O dongle 2,4 GHz não inicia este cronômetro.";
+            UpdateTrayIcons();
             return;
         }
 
@@ -128,6 +225,7 @@ public partial class MainWindow : Window
             ZeusChargeProgressBar.Value = 0;
             ZeusChargeDetailText.Text =
                 "O cabo foi removido ou a conexão mudou enquanto o aplicativo estava fechado. Não é possível saber quando isso ocorreu. Use “Resetar ciclo” antes da próxima carga.";
+            UpdateTrayIcons();
             return;
         }
 
@@ -183,6 +281,8 @@ public partial class MainWindow : Window
                     $"O cabo foi removido após {FormatDuration(elapsed)}. A referência de carga de aproximadamente 3 horas não foi completada; isso não informa a porcentagem real.";
             }
         }
+
+        UpdateTrayIcons();
     }
 
     private static string FormatDuration(TimeSpan duration)
@@ -210,6 +310,7 @@ public partial class MainWindow : Window
 
         _zeusChargeSession.Reset(DateTimeOffset.Now);
         UpdateZeusChargeUi();
+        UpdateTrayIcons();
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e)
@@ -270,6 +371,14 @@ public partial class MainWindow : Window
                 }
             }
 
+            if (deluxReading?.Percent is int latestDeluxPercent)
+            {
+                _trayPreferences.LastDeluxBatteryPercent = latestDeluxPercent;
+                _trayPreferences.LastDeluxReadingAt = DateTimeOffset.Now;
+                _trayPreferencesStore.Save(_trayPreferences);
+            }
+
+            UpdateTrayIcons();
             _devices.Clear();
 
             var deluxGroupAdded = false;
