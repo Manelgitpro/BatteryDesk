@@ -2,11 +2,12 @@ using Microsoft.Win32.SafeHandles;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BatteryDesk.Devices.HID;
 
 /// <summary>
-/// Enumera interfaces HID presentes e lê descritores disponíveis.
+/// Enumera interfaces HID presentes e consulta somente descritores e capacidades.
 /// Não envia Output Reports nem Feature Reports.
 /// </summary>
 public sealed class HidEnumerator
@@ -18,6 +19,7 @@ public sealed class HidEnumerator
     private const uint ShareWrite = 2;
     private const uint FileAttributeNormal = 0x00000080;
     private const int ErrorNoMoreItems = 259;
+    private const int HidpStatusSuccess = 0x00110000;
 
     public IReadOnlyList<HidDeviceInfo> Enumerate()
     {
@@ -58,7 +60,6 @@ public sealed class HidEnumerator
             var detailBuffer = Marshal.AllocHGlobal((int)requiredSize);
             try
             {
-                // SP_DEVICE_INTERFACE_DETAIL_DATA_W: cbSize is 8 on x64 and 6 on x86.
                 Marshal.WriteInt32(detailBuffer, IntPtr.Size == 8 ? 8 : 6);
 
                 if (!SetupDiGetDeviceInterfaceDetail(
@@ -80,6 +81,9 @@ public sealed class HidEnumerator
                 if (HidD_GetAttributes(handle, ref attributes) == 0)
                     continue;
 
+                var caps = ReadCapabilities(handle);
+                var (interfaceNumber, collectionNumber) = ParsePathIndexes(devicePath);
+
                 devices.Add(new HidDeviceInfo(
                     devicePath,
                     attributes.VendorId,
@@ -87,7 +91,15 @@ public sealed class HidEnumerator
                     attributes.VersionNumber,
                     ReadString(handle, HidD_GetManufacturerString),
                     ReadString(handle, HidD_GetProductString),
-                    ReadString(handle, HidD_GetSerialNumberString)));
+                    ReadString(handle, HidD_GetSerialNumberString),
+                    caps?.UsagePage ?? 0,
+                    caps?.Usage ?? 0,
+                    caps?.InputReportByteLength ?? 0,
+                    caps?.OutputReportByteLength ?? 0,
+                    caps?.FeatureReportByteLength ?? 0,
+                    interfaceNumber,
+                    collectionNumber,
+                    caps.HasValue));
             }
             finally
             {
@@ -100,7 +112,49 @@ public sealed class HidEnumerator
             .Select(group => group.First())
             .OrderBy(device => device.Manufacturer)
             .ThenBy(device => device.Product)
+            .ThenBy(device => device.InterfaceNumber)
+            .ThenBy(device => device.CollectionNumber)
             .ToArray();
+    }
+
+    private static HidCapabilities? ReadCapabilities(SafeFileHandle handle)
+    {
+        if (HidD_GetPreparsedData(handle, out var preparsedData) == 0 ||
+            preparsedData == IntPtr.Zero)
+            return null;
+
+        try
+        {
+            var caps = new HidpCaps { Reserved = new ushort[17] };
+            if (HidP_GetCaps(preparsedData, ref caps) != HidpStatusSuccess)
+                return null;
+
+            return new HidCapabilities(
+                caps.UsagePage,
+                caps.Usage,
+                caps.InputReportByteLength,
+                caps.OutputReportByteLength,
+                caps.FeatureReportByteLength);
+        }
+        finally
+        {
+            _ = HidD_FreePreparsedData(preparsedData);
+        }
+    }
+
+    private static (int? InterfaceNumber, int? CollectionNumber) ParsePathIndexes(string path)
+    {
+        var interfaceMatch = Regex.Match(path, @"&mi_([0-9a-f]{2})", RegexOptions.IgnoreCase);
+        var collectionMatch = Regex.Match(path, @"&col([0-9a-f]{2})", RegexOptions.IgnoreCase);
+
+        int? interfaceNumber = interfaceMatch.Success
+            ? Convert.ToInt32(interfaceMatch.Groups[1].Value, 16)
+            : null;
+        int? collectionNumber = collectionMatch.Success
+            ? Convert.ToInt32(collectionMatch.Groups[1].Value, 16)
+            : null;
+
+        return (interfaceNumber, collectionNumber);
     }
 
     private delegate byte HidStringReader(SafeFileHandle handle, byte[] buffer, int bufferLength);
@@ -112,6 +166,13 @@ public sealed class HidEnumerator
             ? string.Empty
             : Encoding.Unicode.GetString(buffer).TrimEnd('\0').Trim();
     }
+
+    private sealed record HidCapabilities(
+        ushort UsagePage,
+        ushort Usage,
+        ushort InputReportByteLength,
+        ushort OutputReportByteLength,
+        ushort FeatureReportByteLength);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct SpDeviceInterfaceData
@@ -131,6 +192,28 @@ public sealed class HidEnumerator
         public ushort VersionNumber;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct HidpCaps
+    {
+        public ushort Usage;
+        public ushort UsagePage;
+        public ushort InputReportByteLength;
+        public ushort OutputReportByteLength;
+        public ushort FeatureReportByteLength;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 17)]
+        public ushort[] Reserved;
+        public ushort NumberLinkCollectionNodes;
+        public ushort NumberInputButtonCaps;
+        public ushort NumberInputValueCaps;
+        public ushort NumberInputDataIndices;
+        public ushort NumberOutputButtonCaps;
+        public ushort NumberOutputValueCaps;
+        public ushort NumberOutputDataIndices;
+        public ushort NumberFeatureButtonCaps;
+        public ushort NumberFeatureValueCaps;
+        public ushort NumberFeatureDataIndices;
+    }
+
     public sealed class SafeDeviceInfoSet : SafeHandleZeroOrMinusOneIsInvalid
     {
         public SafeDeviceInfoSet() : base(true) { }
@@ -140,7 +223,6 @@ public sealed class HidEnumerator
     [DllImport("hid.dll")]
     private static extern void HidD_GetHidGuid(out Guid hidGuid);
 
-    // HID API functions below return BOOLEAN (one byte), not Win32 BOOL.
     [DllImport("hid.dll", EntryPoint = "HidD_GetAttributes")]
     private static extern byte HidD_GetAttributes(SafeFileHandle handle, ref HidAttributes attributes);
 
@@ -152,6 +234,15 @@ public sealed class HidEnumerator
 
     [DllImport("hid.dll", EntryPoint = "HidD_GetSerialNumberString")]
     private static extern byte HidD_GetSerialNumberString(SafeFileHandle handle, byte[] buffer, int bufferLength);
+
+    [DllImport("hid.dll", EntryPoint = "HidD_GetPreparsedData")]
+    private static extern byte HidD_GetPreparsedData(SafeFileHandle handle, out IntPtr preparsedData);
+
+    [DllImport("hid.dll", EntryPoint = "HidD_FreePreparsedData")]
+    private static extern byte HidD_FreePreparsedData(IntPtr preparsedData);
+
+    [DllImport("hid.dll", EntryPoint = "HidP_GetCaps")]
+    private static extern int HidP_GetCaps(IntPtr preparsedData, ref HidpCaps capabilities);
 
     [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern SafeDeviceInfoSet SetupDiGetClassDevs(
