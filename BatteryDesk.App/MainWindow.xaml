@@ -153,7 +153,7 @@
                                   Foreground="{StaticResource TextPrimary}" FontSize="12"
                                   Margin="0,4,0,8"
                                   Checked="TraySelection_Changed" Unchecked="TraySelection_Changed" />
-                        <TextBlock Text="Cada dispositivo selecionado terá seu próprio ícone com o percentual. O mouse usa a última consulta autorizada; o Zeus usa uma estimativa por tempo de carga e autonomia."
+                        <TextBlock Text="Cada dispositivo selecionado terá seu próprio ícone com o percentual. O mouse usa a última consulta autorizada; o Zeus usa uma estimativa por tempo, supondo que a carga começou próxima de 0% e uso contínuo após retirar o USB-C."
                                    Foreground="{StaticResource TextMuted}" FontSize="11"
                                    TextWrapping="Wrap" Margin="0,6,0,0" />
                         <TextBlock Text="Ao fechar a janela, o BatteryDesk ficará na bandeja enquanto houver pelo menos um ícone selecionado. Use o menu do ícone para reabrir ou sair."
