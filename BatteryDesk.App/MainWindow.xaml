@@ -1,0 +1,166 @@
+<Window x:Class="BatteryDesk.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="BatteryDesk" Height="800" Width="1160" MinHeight="650" MinWidth="900"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource WindowBg}"
+        Foreground="{StaticResource TextPrimary}" FontFamily="Segoe UI">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="22" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="18" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="48" Height="48" CornerRadius="14" Background="#203B3A" Margin="0,0,13,0">
+                    <TextBlock Text="▰" FontSize="25" Foreground="{StaticResource Accent}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="BatteryDesk" FontSize="25" FontWeight="Bold" />
+                    <TextBlock Text="WIRELESS DEVICE MONITOR" FontSize="10"
+                               Foreground="{StaticResource TextMuted}" FontWeight="SemiBold" />
+                </StackPanel>
+            </StackPanel>
+            <Border DockPanel.Dock="Right" Background="#18352F" CornerRadius="12" Padding="12,7"
+                    VerticalAlignment="Center">
+                <TextBlock Text="USB / HID DISCOVERY" Foreground="{StaticResource Accent}"
+                           FontSize="10" FontWeight="Bold" />
+            </Border>
+        </DockPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="Seus dispositivos" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Descoberta local de interfaces HID conectadas ao Windows."
+                           Foreground="{StaticResource TextMuted}" Margin="0,5,0,0" />
+            </StackPanel>
+            <Button x:Name="RefreshButton" Grid.Column="1" Content="↻  Procurar dispositivos"
+                    Click="Refresh_Click" VerticalAlignment="Center" />
+        </Grid>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.55*" />
+                <ColumnDefinition Width="18" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{StaticResource PanelBg}"
+                    BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1"
+                    CornerRadius="18" Padding="20">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+                        <DockPanel>
+                            <TextBlock Text="INTERFACES HID ENCONTRADAS" FontSize="11"
+                                       FontWeight="Bold" Foreground="{StaticResource TextMuted}" />
+                            <TextBlock x:Name="DeviceCountText" Text="0 interfaces"
+                                       DockPanel.Dock="Right" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" />
+                        </DockPanel>
+                        <TextBlock Text="A lista pode conter interfaces internas do Windows e não apenas periféricos."
+                                   FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,6,0,0"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="DevicesList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource PanelAlt}" CornerRadius="13"
+                                            Padding="15" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontSize="14"
+                                                           FontWeight="SemiBold" TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding Manufacturer}" FontSize="11"
+                                                           Foreground="{StaticResource TextMuted}" Margin="0,3,0,0" />
+                                                <TextBlock Text="{Binding HardwareId}" FontSize="11"
+                                                           Foreground="#8CB8FF" Margin="0,7,0,0" />
+                                                <TextBlock Text="{Binding Serial}" FontSize="10"
+                                                           Foreground="{StaticResource TextMuted}" Margin="0,3,0,0" />
+                                                <TextBlock Text="{Binding Status}" FontSize="10"
+                                                           Foreground="#E7B96B" Margin="0,7,0,0" />
+                                            </StackPanel>
+                                            <Border Grid.Column="1" Background="#26364A" CornerRadius="9"
+                                                    Padding="9,5" VerticalAlignment="Top">
+                                                <TextBlock Text="HID" FontSize="10" FontWeight="Bold"
+                                                           Foreground="#CBD5E1" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <StackPanel Grid.Column="2">
+                <Border Background="{StaticResource PanelBg}" BorderBrush="{StaticResource BorderBrushSoft}"
+                        BorderThickness="1" CornerRadius="18" Padding="21">
+                    <StackPanel>
+                        <TextBlock Text="STATUS DA DESCOBERTA" FontSize="11" FontWeight="Bold"
+                                   Foreground="{StaticResource TextMuted}" />
+                        <TextBlock x:Name="StatusText" Text="Pronto para procurar" FontSize="18"
+                                   FontWeight="SemiBold" Margin="0,15,0,5" />
+                        <TextBlock x:Name="StatusDetailText"
+                                   Text="Consulta descritores HID em modo somente leitura. Nenhum relatório de saída será enviado."
+                                   Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" FontSize="12" />
+                        <Border Height="1" Background="{StaticResource BorderBrushSoft}" Margin="0,18,0,15" />
+                        <TextBlock Text="ÚLTIMA VERIFICAÇÃO" FontSize="10" FontWeight="Bold"
+                                   Foreground="{StaticResource TextMuted}" />
+                        <TextBlock x:Name="LastScanText" Text="Ainda não executada" FontSize="13"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{StaticResource PanelBg}" BorderBrush="{StaticResource BorderBrushSoft}"
+                        BorderThickness="1" CornerRadius="18" Padding="21" Margin="0,16,0,0">
+                    <StackPanel>
+                        <TextBlock Text="IMPORTANTE" FontSize="11" FontWeight="Bold"
+                                   Foreground="{StaticResource TextMuted}" />
+                        <TextBlock Text="Encontrar um dispositivo HID não significa que a bateria esteja acessível."
+                                   FontSize="14" FontWeight="SemiBold" Margin="0,13,0,6"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="Esta versão identifica fabricante, produto, VID/PID e revisão quando fornecidos. A leitura de bateria e Bluetooth ainda será implementada."
+                                   Foreground="{StaticResource TextMuted}" FontSize="12" TextWrapping="Wrap" />
+                        <TextBlock Text="Nenhuma porcentagem fictícia será apresentada como leitura real."
+                                   Foreground="{StaticResource Accent}" FontSize="12"
+                                   TextWrapping="Wrap" Margin="0,12,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#172B2B" BorderBrush="#285348" BorderThickness="1"
+                        CornerRadius="16" Padding="18" Margin="0,16,0,0">
+                    <StackPanel>
+                        <TextBlock Text="PRÓXIMA ETAPA" Foreground="{StaticResource Accent}"
+                                   FontSize="10" FontWeight="Bold" />
+                        <TextBlock Text="Mapear protocolos de bateria" FontSize="15"
+                                   FontWeight="SemiBold" Margin="0,7,0,4" />
+                        <TextBlock Text="Usaremos os identificadores encontrados para pesquisar protocolos documentados e criar adaptadores por fabricante."
+                                   TextWrapping="Wrap" Foreground="#B7C9C5" FontSize="12" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <DockPanel Grid.Row="5" Margin="0,18,0,0">
+            <TextBlock Text="BatteryDesk · Descoberta USB/HID local"
+                       Foreground="{StaticResource TextMuted}" FontSize="11" />
+            <TextBlock Text="v0.2.0 · Windows" Foreground="{StaticResource TextMuted}"
+                       FontSize="11" DockPanel.Dock="Right" />
+        </DockPanel>
+    </Grid>
+</Window>
