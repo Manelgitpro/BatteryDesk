@@ -99,7 +99,7 @@ public sealed class HidEnumerator
                     caps?.FeatureReportByteLength ?? 0,
                     interfaceNumber,
                     collectionNumber,
-                    caps.HasValue));
+                    caps is not null));
             }
             finally
             {
