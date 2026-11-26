@@ -88,7 +88,12 @@
                                                            Foreground="{StaticResource TextMuted}" Margin="0,3,0,0" />
                                                 <TextBlock Text="{Binding HardwareId}" FontSize="11"
                                                            Foreground="#8CB8FF" Margin="0,7,0,0" />
+                                                <TextBlock Text="{Binding BatteryText}" FontSize="12"
+                                                           Foreground="{StaticResource Accent}" FontWeight="SemiBold"
+                                                           Margin="0,7,0,0" />
                                                 <TextBlock Text="{Binding Serial}" FontSize="10"
+                                                           Foreground="{StaticResource TextMuted}" Margin="0,3,0,0" />
+                                                <TextBlock Text="{Binding InterfaceText}" FontSize="10"
                                                            Foreground="{StaticResource TextMuted}" Margin="0,3,0,0" />
                                                 <TextBlock Text="{Binding Status}" FontSize="10"
                                                            Foreground="#E7B96B" Margin="0,7,0,0" />
@@ -116,7 +121,7 @@
                         <TextBlock x:Name="StatusText" Text="Pronto para procurar" FontSize="18"
                                    FontWeight="SemiBold" Margin="0,15,0,5" />
                         <TextBlock x:Name="StatusDetailText"
-                                   Text="Consulta descritores HID em modo somente leitura. Nenhum relatório de saída será enviado."
+                                   Text="Consulta local de interfaces HID. O BatteryDesk já consegue consultar o receptor compatível do Delux M800 Pro em 2,4 GHz."
                                    Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" FontSize="12" />
                         <Border Height="1" Background="{StaticResource BorderBrushSoft}" Margin="0,18,0,15" />
                         <TextBlock Text="ÚLTIMA VERIFICAÇÃO" FontSize="10" FontWeight="Bold"
@@ -134,7 +139,7 @@
                         <TextBlock Text="Encontrar um dispositivo HID não significa que a bateria esteja acessível."
                                    FontSize="14" FontWeight="SemiBold" Margin="0,13,0,6"
                                    TextWrapping="Wrap" />
-                        <TextBlock Text="Esta versão identifica fabricante, produto, VID/PID e revisão quando fornecidos. A leitura de bateria e Bluetooth ainda será implementada."
+                        <TextBlock Text="Nesta versão, o protocolo de bateria do Delux M800 Pro é consultado pelo receptor USB de 2,4 GHz. Outros modelos ainda precisam de adaptadores próprios."
                                    Foreground="{StaticResource TextMuted}" FontSize="12" TextWrapping="Wrap" />
                         <TextBlock Text="Nenhuma porcentagem fictícia será apresentada como leitura real."
                                    Foreground="{StaticResource Accent}" FontSize="12"
@@ -147,9 +152,9 @@
                     <StackPanel>
                         <TextBlock Text="PRÓXIMA ETAPA" Foreground="{StaticResource Accent}"
                                    FontSize="10" FontWeight="Bold" />
-                        <TextBlock Text="Mapear protocolos de bateria" FontSize="15"
+                        <TextBlock Text="Próximo: validar outros periféricos" FontSize="15"
                                    FontWeight="SemiBold" Margin="0,7,0,4" />
-                        <TextBlock Text="Usaremos os identificadores encontrados para pesquisar protocolos documentados e criar adaptadores por fabricante."
+                        <TextBlock Text="O receptor Delux M800 Pro já tem uma consulta dedicada. Os próximos adaptadores serão adicionados após identificar e validar cada protocolo."
                                    TextWrapping="Wrap" Foreground="#B7C9C5" FontSize="12" />
                     </StackPanel>
                 </Border>
@@ -159,7 +164,7 @@
         <DockPanel Grid.Row="5" Margin="0,18,0,0">
             <TextBlock Text="BatteryDesk · Descoberta USB/HID local"
                        Foreground="{StaticResource TextMuted}" FontSize="11" />
-            <TextBlock Text="v0.2.0 · Windows" Foreground="{StaticResource TextMuted}"
+            <TextBlock Text="v0.3.0 · Windows" Foreground="{StaticResource TextMuted}"
                        FontSize="11" DockPanel.Dock="Right" />
         </DockPanel>
     </Grid>
