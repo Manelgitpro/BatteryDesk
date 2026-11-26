@@ -56,7 +56,7 @@ public partial class MainWindow : Window
             {
                 var consent = MessageBox.Show(
                     this,
-                    "O BatteryDesk encontrou o receptor Delux M800 Pro. Para consultar a bateria, precisa enviar uma solicitação HID de telemetria (Feature Report 0C) e ler a resposta.\n\n" +
+                    "O BatteryDesk encontrou o receptor Delux M800 Pro. Para consultar a bateria, precisa enviar uma solicitação HID de telemetria (Feature Report 0C; pode repetir a solicitação se o receptor pedir estado) e ler a resposta.\n\n" +
                     "A solicitação é específica para obter o estado da bateria; não grava configurações, não altera firmware e não executa comandos de configuração.\n\n" +
                     "Autoriza esta consulta agora? Se escolher Não, nenhum pacote será enviado ao receptor.",
                     "Autorizar consulta de bateria do Delux",
@@ -161,7 +161,7 @@ public partial class MainWindow : Window
         var captureInterfaces = _zeusInterfaces
             .Where(device =>
                 device.InputReportByteLength > 0 &&
-                device.UsagePage is 0xF100 or 0x000C or 0x000B)
+                device.UsagePage == 0xF100)
             .ToArray();
 
         if (!captureInterfaces.Any(device => device.UsagePage == 0xF100))
