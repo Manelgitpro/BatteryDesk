@@ -28,6 +28,11 @@ O leitor do Delux M800 Pro usa o Feature Report 0C 01 20 exclusivamente para sol
 
 Esse pedido não é um comando de configuração conhecido. Mesmo assim, por envolver envio de dados ao dispositivo, ele não roda sem consentimento explícito. A opção padrão da confirmação é Não.
 
+## Monitoramento estimativo de carga do Zeus Pro
+
+O timer de carga usa somente notificações de alteração da árvore de dispositivos do Windows e a enumeração HID de leitura para identificar a interface USB-C `H510-PRO USB Gaming Headset` (VID/PID 040B:0897). A enumeração abre interfaces com acesso desejado zero e consulta apenas identificadores/descritores; não lê relatórios e não envia pacotes ao headset. O timer grava apenas timestamps locais em arquivo de sessão. O receptor sem fio não deve iniciar o timer.
+
+O tempo de aproximadamente 3 horas é uma referência publicada pela Redragon, não uma leitura de carga. O app nunca apresenta essa estimativa como percentual ou confirmação real de 100%. A função só monitora presença de cabo enquanto a janela do BatteryDesk está aberta; se o cabo for removido enquanto o app estiver fechado, a interface informa que não sabe o momento exato da remoção.
 ## Captura do Zeus Pro
 
 A captura 040B:0897 abre somente a coleção proprietária 0xF100 com acesso GENERIC_READ e lê somente relatórios de entrada. Não abre as coleções comuns de multimídia ou telefonia. Não chama HidD_SetFeature, não emite Output Reports e não envia pacotes ao headset. Só começa após o usuário clicar no botão de captura.
