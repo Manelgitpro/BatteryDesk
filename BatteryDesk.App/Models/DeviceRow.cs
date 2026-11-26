@@ -17,7 +17,8 @@ public sealed class DeviceRow
         HidDeviceInfo device,
         int interfaceCount = 1,
         DeluxM800BatteryResult? deluxReading = null,
-        bool isDeluxReceiver = false)
+        bool isDeluxReceiver = false,
+        bool deluxQueryAuthorized = false)
     {
         var isSupportedReceiver = device.VendorId == 0x248A && device.ProductId == 0x5B2F;
         var displayName = isSupportedReceiver ? "Delux M800 Pro" : device.DisplayName;
@@ -35,10 +36,15 @@ public sealed class DeviceRow
             batteryText = "Mouse não conectado ao receptor";
             status = "Receptor localizado · mouse não conectado";
         }
+        else if (isSupportedReceiver && isDeluxReceiver && !deluxQueryAuthorized)
+        {
+            batteryText = "Consulta não autorizada";
+            status = "Nenhum comando foi enviado ao receptor";
+        }
         else if (isSupportedReceiver && isDeluxReceiver)
         {
             batteryText = "Aguardando resposta de bateria";
-            status = "Receptor identificado · consulta não respondeu";
+            status = "Consulta autorizada · aguardando resposta";
         }
         else
         {
