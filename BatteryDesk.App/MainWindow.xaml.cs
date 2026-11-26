@@ -113,7 +113,7 @@ public partial class MainWindow : Window
 
     private void Tray_ExitRequested()
     {
-        Dispatcher.BeginInvoke(() =>
+        Dispatcher.BeginInvoke(new Action(() =>
         {
             _allowExit = true;
             Close();
