@@ -103,12 +103,12 @@ public partial class MainWindow : Window
 
     private void Tray_ShowRequested()
     {
-        Dispatcher.BeginInvoke(() =>
+        Dispatcher.BeginInvoke(new Action(() =>
         {
             Show();
             WindowState = WindowState.Normal;
             Activate();
-        });
+        }));
     }
 
     private void Tray_ExitRequested()
@@ -117,7 +117,7 @@ public partial class MainWindow : Window
         {
             _allowExit = true;
             Close();
-        });
+        }));
     }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
