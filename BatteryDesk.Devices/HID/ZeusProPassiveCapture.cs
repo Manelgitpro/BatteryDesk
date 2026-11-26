@@ -117,7 +117,7 @@ public sealed class ZeusProPassiveCapture
             await using var stream = new FileStream(
                 handle,
                 FileAccess.Read,
-                Math.Max(device.InputReportByteLength, 64),
+                Math.Max((int)device.InputReportByteLength, 64),
                 isAsync: true);
 
             var buffer = new byte[device.InputReportByteLength];
