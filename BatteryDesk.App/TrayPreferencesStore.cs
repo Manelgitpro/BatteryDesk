@@ -7,6 +7,8 @@ internal sealed class TrayPreferences
 {
     public bool ShowDeluxMouse { get; set; }
     public bool ShowZeusHeadset { get; set; }
+    public int? LastDeluxBatteryPercent { get; set; }
+    public DateTimeOffset? LastDeluxReadingAt { get; set; }
 }
 
 internal sealed class TrayPreferencesStore
