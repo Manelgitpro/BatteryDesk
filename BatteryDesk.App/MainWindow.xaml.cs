@@ -173,8 +173,8 @@ public partial class MainWindow : Window
         CaptureZeusButton.IsEnabled = false;
         RefreshButton.IsEnabled = false;
         StatusText.Text = "Capturando relatórios passivamente...";
-        StatusDetailText.Text = "Durante 30 segundos, pressione volume +/-, o botão 7.1 e o botão de iluminação do headset. Nenhum comando será enviado ao fone.";
-        ZeusCaptureStatusText.Text = "Captura em andamento. Interaja com os controles do headset agora.";
+        StatusDetailText.Text = "Durante 30 segundos, deixe o headset em repouso. A captura apenas lê relatórios que ele transmitir espontaneamente; nenhum comando será enviado.";
+        ZeusCaptureStatusText.Text = "Captura passiva em andamento. Não é necessário tocar no headset.";
 
         try
         {
