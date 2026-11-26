@@ -138,6 +138,33 @@
                 <Border Background="{StaticResource PanelBg}" BorderBrush="{StaticResource BorderBrushSoft}"
                         BorderThickness="1" CornerRadius="18" Padding="21" Margin="0,16,0,0">
                     <StackPanel>
+                        <TextBlock Text="ÍCONES NA ÁREA DE NOTIFICAÇÃO" FontSize="11" FontWeight="Bold"
+                                   Foreground="{StaticResource TextMuted}" />
+                        <TextBlock Text="Escolha quais baterias deseja acompanhar na bandeja do Windows."
+                                   Foreground="{StaticResource TextMuted}" FontSize="12"
+                                   TextWrapping="Wrap" Margin="0,8,0,10" />
+                        <CheckBox x:Name="ShowDeluxInTrayCheckBox"
+                                  Content="Mouse Delux M800 Pro · leitura real"
+                                  Foreground="{StaticResource TextPrimary}" FontSize="12"
+                                  Margin="0,4,0,8"
+                                  Checked="TraySelection_Changed" Unchecked="TraySelection_Changed" />
+                        <CheckBox x:Name="ShowZeusInTrayCheckBox"
+                                  Content="Fone Redragon Zeus Pro · estimativa"
+                                  Foreground="{StaticResource TextPrimary}" FontSize="12"
+                                  Margin="0,4,0,8"
+                                  Checked="TraySelection_Changed" Unchecked="TraySelection_Changed" />
+                        <TextBlock Text="Cada dispositivo selecionado terá seu próprio ícone com o percentual. O mouse usa a última consulta autorizada; o Zeus usa uma estimativa por tempo de carga e autonomia."
+                                   Foreground="{StaticResource TextMuted}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,6,0,0" />
+                        <TextBlock Text="Ao fechar a janela, o BatteryDesk ficará na bandeja enquanto houver pelo menos um ícone selecionado. Use o menu do ícone para reabrir ou sair."
+                                   Foreground="{StaticResource Accent}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,9,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{StaticResource PanelBg}" BorderBrush="{StaticResource BorderBrushSoft}"
+                        BorderThickness="1" CornerRadius="18" Padding="21" Margin="0,16,0,0">
+                    <StackPanel>
                         <TextBlock Text="PROTEÇÃO DO DISPOSITIVO" FontSize="11" FontWeight="Bold"
                                    Foreground="{StaticResource TextMuted}" />
                         <TextBlock Text="O BatteryDesk não altera configurações, firmware, memória, iluminação, pareamento ou modos dos periféricos."
@@ -199,7 +226,7 @@
         <DockPanel Grid.Row="5" Margin="0,18,0,0">
             <TextBlock Text="BatteryDesk · Descoberta USB/HID local"
                        Foreground="{StaticResource TextMuted}" FontSize="11" />
-            <TextBlock Text="v0.6.0 · Windows" Foreground="{StaticResource TextMuted}"
+            <TextBlock Text="v0.7.0 · Windows" Foreground="{StaticResource TextMuted}"
                        FontSize="11" DockPanel.Dock="Right" />
         </DockPanel>
     </Grid>
