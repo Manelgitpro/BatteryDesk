@@ -8,7 +8,9 @@ public partial class MainWindow : Window
 {
     private readonly HidEnumerator _enumerator = new();
     private readonly DeluxM800BatteryReader _deluxReader = new();
+    private readonly ZeusProPassiveCapture _zeusCapture = new();
     private readonly ObservableCollection<DeviceRow> _devices = new();
+    private IReadOnlyList<HidDeviceInfo> _zeusInterfaces = Array.Empty<HidDeviceInfo>();
 
     public MainWindow()
     {
@@ -19,12 +21,24 @@ public partial class MainWindow : Window
     private async void Refresh_Click(object sender, RoutedEventArgs e)
     {
         RefreshButton.IsEnabled = false;
+        CaptureZeusButton.IsEnabled = false;
         StatusText.Text = "Procurando dispositivos...";
         StatusDetailText.Text = "Lendo descritores HID, identificando coleções, interfaces e tamanhos dos relatórios.";
 
         try
         {
             var found = await Task.Run(_enumerator.Enumerate);
+            _zeusInterfaces = found
+                .Where(device => device.VendorId == 0x040B && device.ProductId == 0x0897)
+                .ToArray();
+
+            var zeusVendorInterfaceFound = _zeusInterfaces.Any(device =>
+                device.UsagePage == 0xF100 && device.InputReportByteLength > 0);
+            CaptureZeusButton.IsEnabled = zeusVendorInterfaceFound;
+            ZeusCaptureStatusText.Text = zeusVendorInterfaceFound
+                ? "Canal proprietário 0xF100 encontrado. A captura passiva está disponível."
+                : "A coleção proprietária 0xF100 não foi encontrada nesta varredura.";
+
             var deluxInterfaces = found
                 .Where(device => device.VendorId == 0x248A && device.ProductId == 0x5B2F)
                 .ToArray();
@@ -115,6 +129,57 @@ public partial class MainWindow : Window
         finally
         {
             RefreshButton.IsEnabled = true;
+        }
+    }
+
+    private async void CaptureZeus_Click(object sender, RoutedEventArgs e)
+    {
+        var captureInterfaces = _zeusInterfaces
+            .Where(device =>
+                device.InputReportByteLength > 0 &&
+                device.UsagePage is 0xF100 or 0x000C or 0x000B)
+            .ToArray();
+
+        if (!captureInterfaces.Any(device => device.UsagePage == 0xF100))
+        {
+            ZeusCaptureStatusText.Text = "A coleção proprietária 0xF100 não está disponível. Faça uma nova varredura.";
+            return;
+        }
+
+        CaptureZeusButton.IsEnabled = false;
+        RefreshButton.IsEnabled = false;
+        StatusText.Text = "Capturando relatórios passivamente...";
+        StatusDetailText.Text = "Durante 30 segundos, pressione volume +/-, o botão 7.1 e o botão de iluminação do headset. Nenhum comando será enviado ao fone.";
+        ZeusCaptureStatusText.Text = "Captura em andamento. Interaja com os controles do headset agora.";
+
+        try
+        {
+            var result = await _zeusCapture.CaptureAsync(
+                captureInterfaces,
+                TimeSpan.FromSeconds(30));
+
+            StatusText.Text = result.Frames.Count > 0
+                ? $"{result.Frames.Count} relatórios HID recebidos"
+                : "Nenhum relatório HID recebido";
+            StatusDetailText.Text = result.Frames.Count > 0
+                ? "A captura foi salva. Os dados ainda precisam ser analisados para verificar se existe algum campo relacionado à bateria."
+                : "As interfaces monitoradas não enviaram relatórios durante o teste. Isso não descarta mensagens em outros momentos ou tráfego USB fora do HID.";
+
+            ZeusCaptureStatusText.Text =
+                $"Arquivo: {result.LogPath}{Environment.NewLine}" +
+                $"Interfaces: {result.InterfaceCount} · Relatórios: {result.Frames.Count} · Erros: {result.Errors.Count}";
+        }
+        catch (Exception exception)
+        {
+            StatusText.Text = "Falha na captura passiva";
+            StatusDetailText.Text = exception.Message;
+            ZeusCaptureStatusText.Text = "A captura não foi concluída. Faça uma nova varredura e tente novamente.";
+        }
+        finally
+        {
+            RefreshButton.IsEnabled = true;
+            CaptureZeusButton.IsEnabled = _zeusInterfaces.Any(device =>
+                device.UsagePage == 0xF100 && device.InputReportByteLength > 0);
         }
     }
 }
