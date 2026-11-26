@@ -50,8 +50,27 @@ public partial class MainWindow : Window
                 .ToArray();
 
             DeluxM800BatteryResult? deluxReading = null;
+            var deluxQueryAuthorized = false;
+
             if (deluxInterfaces.Length > 0)
-                deluxReading = await Task.Run(() => _deluxReader.Read(deluxInterfaces));
+            {
+                var consent = MessageBox.Show(
+                    this,
+                    "O BatteryDesk encontrou o receptor Delux M800 Pro. Para consultar a bateria, precisa enviar uma solicitação HID de telemetria (Feature Report 0C) e ler a resposta.\n\n" +
+                    "A solicitação é específica para obter o estado da bateria; não grava configurações, não altera firmware e não executa comandos de configuração.\n\n" +
+                    "Autoriza esta consulta agora? Se escolher Não, nenhum pacote será enviado ao receptor.",
+                    "Autorizar consulta de bateria do Delux",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question,
+                    MessageBoxResult.No);
+
+                if (consent == MessageBoxResult.Yes)
+                {
+                    deluxQueryAuthorized = true;
+                    deluxReading = await Task.Run(() =>
+                        _deluxReader.Read(deluxInterfaces, explicitlyAuthorizedByUser: true));
+                }
+            }
 
             _devices.Clear();
 
@@ -68,7 +87,7 @@ public partial class MainWindow : Window
 
                     deluxGroupAdded = true;
                     _devices.Add(DeviceRow.From(
-                        device, deluxInterfaces.Length, deluxReading, isDeluxReceiver: true));
+                        device, deluxInterfaces.Length, deluxReading, isDeluxReceiver: true, deluxQueryAuthorized: deluxQueryAuthorized));
                     continue;
                 }
 
@@ -105,10 +124,15 @@ public partial class MainWindow : Window
                 StatusText.Text = $"Delux M800 Pro: {percent}%";
                 StatusDetailText.Text = $"Leitura recebida pelo receptor 2,4 GHz ({chargeState}).{keyboardSummary}";
             }
+            else if (deluxInterfaces.Length > 0 && !deluxQueryAuthorized)
+            {
+                StatusText.Text = "Consulta do Delux não autorizada";
+                StatusDetailText.Text = "Nenhum pacote foi enviado ao receptor. A identificação HID foi somente de leitura." + keyboardSummary;
+            }
             else if (deluxInterfaces.Length > 0)
             {
                 StatusText.Text = "Receptor Delux identificado";
-                StatusDetailText.Text = "O receptor 2,4 GHz foi encontrado, mas ainda não respondeu à consulta." + keyboardSummary;
+                StatusDetailText.Text = "A consulta foi autorizada, mas o receptor ainda não respondeu com dados válidos." + keyboardSummary;
             }
             else
             {
