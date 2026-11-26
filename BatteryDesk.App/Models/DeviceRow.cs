@@ -11,6 +11,7 @@ public sealed class DeviceRow
     public string Status { get; init; } = "";
     public string BatteryText { get; init; } = "";
     public string InterfaceText { get; init; } = "";
+    public string TechnicalDetails { get; init; } = "";
 
     public static DeviceRow From(
         HidDeviceInfo device,
@@ -59,7 +60,45 @@ public sealed class DeviceRow
                 : $"S/N: {device.SerialNumber}",
             Status = status,
             BatteryText = batteryText,
-            InterfaceText = interfaceCount > 1 ? $"{interfaceCount} interfaces HID agrupadas" : "HID"
+            InterfaceText = interfaceCount > 1 ? $"{interfaceCount} interfaces HID agrupadas" : device.InterfaceLabel,
+            TechnicalDetails = FormatInterfaceDetails(device)
         };
     }
+
+    public static DeviceRow FromKeyboardGroup(IReadOnlyList<HidDeviceInfo> interfaces)
+    {
+        var first = interfaces[0];
+        var summaries = interfaces
+            .GroupBy(d => d.CollectionType)
+            .OrderBy(g => g.Key)
+            .Select(g => $"{g.Key}: {g.Count()}")
+            .ToArray();
+
+        var details = interfaces
+            .OrderBy(d => d.InterfaceNumber)
+            .ThenBy(d => d.CollectionNumber)
+            .Select(d => $"{d.InterfaceLabel} · {d.CollectionType} · Uso {d.UsagePage:X4}:{d.Usage:X4} · {d.ReportSummary}")
+            .ToArray();
+
+        return new DeviceRow
+        {
+            Name = "USB Gaming Keyboard",
+            Manufacturer = string.IsNullOrWhiteSpace(first.Manufacturer)
+                ? "SEMICO"
+                : first.Manufacturer,
+            HardwareId = first.HardwareId,
+            Serial = string.IsNullOrWhiteSpace(first.SerialNumber)
+                ? "Número de série não informado"
+                : $"S/N: {first.SerialNumber}",
+            BatteryText = "Teclado USB · sem bateria monitorada",
+            Status = "Varredura HID detalhada concluída",
+            InterfaceText = $"{interfaces.Count} coleções/interfaces HID agrupadas",
+            TechnicalDetails = summaries.Length == 0
+                ? string.Join(Environment.NewLine, details)
+                : string.Join(" · ", summaries) + Environment.NewLine + string.Join(Environment.NewLine, details)
+        };
+    }
+
+    private static string FormatInterfaceDetails(HidDeviceInfo device) =>
+        $"{device.InterfaceLabel} · {device.CollectionType} · Uso {device.UsagePage:X4}:{device.Usage:X4} · {device.ReportSummary}";
 }
