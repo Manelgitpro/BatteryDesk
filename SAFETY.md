@@ -30,7 +30,7 @@ Esse pedido não é um comando de configuração conhecido. Mesmo assim, por env
 
 ## Captura do Zeus Pro
 
-A captura 040B:0897 abre as coleções monitoradas com acesso GENRIC_READ e lê somente relatórios de entrada. Não chama HidD_SetFeature, não emite Output Reports e não envia pacotes ao headset. Só começa após o usuário clicar no botão de captura.
+A captura 040B:0897 abre as coleções monitoradas com acesso GENERIC_READ e lê somente relatórios de entrada. Não chama HidD_SetFeature, não emite Output Reports e não envia pacotes ao headset. Só começa após o usuário clicar no botão de captura.
 
 ## Revisão obrigatória para novas integrações
 
