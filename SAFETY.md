@@ -14,7 +14,7 @@ Nenhuma comunicação ativa com um periférico pode ocorrer sem ação explícit
 |---|---|
 | Enumerar dispositivos e ler descritores HID | Permitido após o usuário iniciar a varredura |
 | Ler identificadores e capacidades HID | Permitido |
-| Capturar relatórios HID de entrada | Somente após clicar em Capturar; leitura passiva |
+| Capturar relatórios HID de entrada | Somente após clicar em Capturar; leitura passiva apenas da coleção proprietária 0xF100 |
 | Consultar bateria do Delux M800 Pro | Só após confirmação específica em cada varredura; solicitação de telemetria documentada |
 | Ler propriedades Bluetooth publicadas pelo Windows | Permitido após o usuário iniciar a função |
 | Output Reports para periféricos | Proibido |
@@ -30,7 +30,7 @@ Esse pedido não é um comando de configuração conhecido. Mesmo assim, por env
 
 ## Captura do Zeus Pro
 
-A captura 040B:0897 abre as coleções monitoradas com acesso GENERIC_READ e lê somente relatórios de entrada. Não chama HidD_SetFeature, não emite Output Reports e não envia pacotes ao headset. Só começa após o usuário clicar no botão de captura.
+A captura 040B:0897 abre somente a coleção proprietária 0xF100 com acesso GENERIC_READ e lê somente relatórios de entrada. Não abre as coleções comuns de multimídia ou telefonia. Não chama HidD_SetFeature, não emite Output Reports e não envia pacotes ao headset. Só começa após o usuário clicar no botão de captura.
 
 ## Revisão obrigatória para novas integrações
 
