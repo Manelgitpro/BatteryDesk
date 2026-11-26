@@ -19,7 +19,7 @@ Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, para id
 
 ## Investigação do Redragon Zeus Pro H510-PRO
 
-A captura passiva pode ser iniciada após uma varredura que encontre a coleção proprietária HID `0xF100`. Durante os 30 segundos da captura, pressione os controles físicos do headset (volume, 7.1 e iluminação).
+A captura passiva pode ser iniciada após uma varredura que encontre a coleção proprietária HID `0xF100`. No primeiro teste, deixe o headset em repouso durante os 30 segundos, sem pressionar botões: queremos registrar somente o que ele transmite espontaneamente.
 
 Os arquivos são salvos em:
 
