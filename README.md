@@ -34,13 +34,13 @@ O timer:
 - persiste os horários localmente em `%LOCALAPPDATA%\BatteryDesk\ZeusProChargeSession.json`;
 - somente observa eventos de conexão do Windows e enumera descritores HID com acesso de leitura; não lê relatórios de entrada/saída nem envia comandos ao headset.
 
-O tempo de 3 horas é uma estimativa anunciada pela marca, não uma confirmação de 100%. Se o BatteryDesk for fechado enquanto o cabo for removido, o instante exato da remoção não pode ser recuperado; a interface sinaliza a sessão como interrompida e pede para zerar o ciclo.
+O tempo de 3 horas é uma estimativa anunciada pela marca, não uma confirmação de 100%. O cálculo de carga começa próximo de 0% e supõe carga linear; a descarga depois de retirar o USB-C supõe uso contínuo e autonomia máxima de 18 horas. Se o BatteryDesk for fechado enquanto o cabo for removido, o instante exato da remoção não pode ser recuperado; a interface sinaliza a sessão como interrompida e pede para zerar o ciclo.
 ## Ícones na área de notificação do Windows
 
 Na seção **Ícones na área de notificação**, o usuário pode escolher individualmente quais dispositivos deseja exibir. Cada seleção cria um ícone próprio com desenho do mouse ou do headset e o número do percentual. As preferências ficam em `%LOCALAPPDATA%\\BatteryDesk\\TrayPreferences.json`.
 
 - **Delux M800 Pro:** exibe a última leitura real que o usuário autorizou durante uma varredura. A leitura não é atualizada em segundo plano; o tooltip informa o horário e marca dados com mais de seis horas como antigos.
-- **Redragon Zeus Pro:** exibe uma estimativa marcada com `~`. Durante a carga, a estimativa cresce linearmente até a referência de aproximadamente 3 horas. Depois de retirar o USB-C, ela diminui linearmente ao longo de até 18 horas, supondo uso contínuo. A autonomia real depende das condições de uso e pode ser menor.
+- **Redragon Zeus Pro:** exibe uma estimativa marcada com `~`. O modelo supõe que o ciclo de carga começou próximo de 0%: durante a carga, a estimativa cresce linearmente até a referência de aproximadamente 3 horas. Depois de retirar o USB-C, ela diminui linearmente ao longo de até 18 horas, supondo uso contínuo. Se o headset já tinha carga antes de conectar o cabo, ou ficar desligado após desconectar, a estimativa pode divergir bastante da carga real.
 
 Quando pelo menos um ícone está selecionado, minimizar ou fechar a janela mantém o BatteryDesk na área de notificação. Clique duas vezes em um ícone ou use seu menu de contexto para reabrir a janela ou sair do aplicativo. O Windows pode mover ícones para a área de ícones ocultos; isso é controlado pelas configurações da barra de tarefas.
 
