@@ -137,14 +137,14 @@
                 <Border Background="{StaticResource PanelBg}" BorderBrush="{StaticResource BorderBrushSoft}"
                         BorderThickness="1" CornerRadius="18" Padding="21" Margin="0,16,0,0">
                     <StackPanel>
-                        <TextBlock Text="IMPORTANTE" FontSize="11" FontWeight="Bold"
+                        <TextBlock Text="PROTEÇÃO DO DISPOSITIVO" FontSize="11" FontWeight="Bold"
                                    Foreground="{StaticResource TextMuted}" />
-                        <TextBlock Text="Encontrar um dispositivo HID não significa que a bateria esteja acessível."
+                        <TextBlock Text="O BatteryDesk não altera configurações, firmware, memória, iluminação, pareamento ou modos dos periféricos."
                                    FontSize="14" FontWeight="SemiBold" Margin="0,13,0,6"
                                    TextWrapping="Wrap" />
-                        <TextBlock Text="Além da bateria do Delux pelo receptor 2,4 GHz, esta versão detalha as coleções HID do teclado SEMICO: tipo de uso e tamanhos dos relatórios de entrada, saída e recurso."
+                        <TextBlock Text="A captura do Zeus Pro é passiva. A consulta de bateria do Delux envia uma solicitação de telemetria somente depois de sua confirmação explícita em cada varredura."
                                    Foreground="{StaticResource TextMuted}" FontSize="12" TextWrapping="Wrap" />
-                        <TextBlock Text="Nenhuma porcentagem fictícia será apresentada como leitura real."
+                        <TextBlock Text="Sem autorização, nenhum pacote ativo é enviado. Nenhuma porcentagem fictícia será apresentada como leitura real."
                                    Foreground="{StaticResource Accent}" FontSize="12"
                                    TextWrapping="Wrap" Margin="0,12,0,0" />
                     </StackPanel>
