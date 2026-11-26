@@ -14,7 +14,7 @@ Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, para id
 - Agrupamento das interfaces do receptor Delux M800 Pro para evitar cartões duplicados.
 - Consulta de bateria do **Delux M800 Pro pelo receptor USB de 2,4 GHz** (VID:PID `248A:5B2F`).
 - Exibição de percentual e estado de carga quando o receptor responde com dados válidos.
-- **Captura HID passiva do Redragon Zeus Pro H510-PRO** (VID:PID `040B:0897`), limitada às coleções de fabricante `F100`, multimídia e telefonia.
+- **Captura HID passiva do Redragon Zeus Pro H510-PRO** (VID:PID `040B:0897`), limitada exclusivamente à coleção proprietária do fabricante `F100`.
 - Gravação dos relatórios HID de entrada recebidos em arquivo local para análise do protocolo.
 
 ## Investigação do Redragon Zeus Pro H510-PRO
@@ -26,8 +26,8 @@ Os arquivos são salvos em:
 `%LOCALAPPDATA%\BatteryDesk\Captures`
 
 A captura:
-- abre somente interfaces HID do dispositivo `040B:0897`;
-- lê relatórios de entrada com `ReadFile`;
+- abre somente a interface HID proprietária `0xF100` do dispositivo `040B:0897`;
+- lê relatórios de entrada com `ReadFile`; não abre as coleções de teclas multimídia ou telefonia;
 - não chama `HidD_SetFeature`, não envia Output Reports e não tenta comandos desconhecidos;
 - registra página de uso, uso, horário UTC e bytes recebidos;
 - não registra caminho HID nem número de série no arquivo.
