@@ -60,7 +60,7 @@
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
                         <DockPanel>
-                            <TextBlock Text="INTERFACES HID ENCONTRADAS" FontSize="11"
+                            <TextBlock Text="DISPOSITIVOS E COLEÇÕES HID" FontSize="11"
                                        FontWeight="Bold" Foreground="{StaticResource TextMuted}" />
                             <TextBlock x:Name="DeviceCountText" Text="0 interfaces"
                                        DockPanel.Dock="Right" FontSize="11"
@@ -95,6 +95,9 @@
                                                            Foreground="{StaticResource TextMuted}" Margin="0,3,0,0" />
                                                 <TextBlock Text="{Binding InterfaceText}" FontSize="10"
                                                            Foreground="{StaticResource TextMuted}" Margin="0,3,0,0" />
+                                                <TextBlock Text="{Binding TechnicalDetails}" FontSize="10"
+                                                           Foreground="#B7C9C5" TextWrapping="Wrap"
+                                                           Margin="0,7,0,0" />
                                                 <TextBlock Text="{Binding Status}" FontSize="10"
                                                            Foreground="#E7B96B" Margin="0,7,0,0" />
                                             </StackPanel>
@@ -139,7 +142,7 @@
                         <TextBlock Text="Encontrar um dispositivo HID não significa que a bateria esteja acessível."
                                    FontSize="14" FontWeight="SemiBold" Margin="0,13,0,6"
                                    TextWrapping="Wrap" />
-                        <TextBlock Text="Nesta versão, o protocolo de bateria do Delux M800 Pro é consultado pelo receptor USB de 2,4 GHz. Outros modelos ainda precisam de adaptadores próprios."
+                        <TextBlock Text="Além da bateria do Delux pelo receptor 2,4 GHz, esta versão detalha as coleções HID do teclado SEMICO: tipo de uso e tamanhos dos relatórios de entrada, saída e recurso."
                                    Foreground="{StaticResource TextMuted}" FontSize="12" TextWrapping="Wrap" />
                         <TextBlock Text="Nenhuma porcentagem fictícia será apresentada como leitura real."
                                    Foreground="{StaticResource Accent}" FontSize="12"
@@ -152,9 +155,9 @@
                     <StackPanel>
                         <TextBlock Text="PRÓXIMA ETAPA" Foreground="{StaticResource Accent}"
                                    FontSize="10" FontWeight="Bold" />
-                        <TextBlock Text="Próximo: validar outros periféricos" FontSize="15"
+                        <TextBlock Text="Próximo: analisar protocolos do teclado" FontSize="15"
                                    FontWeight="SemiBold" Margin="0,7,0,4" />
-                        <TextBlock Text="O receptor Delux M800 Pro já tem uma consulta dedicada. Os próximos adaptadores serão adicionados após identificar e validar cada protocolo."
+                        <TextBlock Text="A varredura do teclado é somente de leitura. Não envia comandos de configuração nem altera iluminação, macros ou firmware."
                                    TextWrapping="Wrap" Foreground="#B7C9C5" FontSize="12" />
                     </StackPanel>
                 </Border>
@@ -164,7 +167,7 @@
         <DockPanel Grid.Row="5" Margin="0,18,0,0">
             <TextBlock Text="BatteryDesk · Descoberta USB/HID local"
                        Foreground="{StaticResource TextMuted}" FontSize="11" />
-            <TextBlock Text="v0.3.0 · Windows" Foreground="{StaticResource TextMuted}"
+            <TextBlock Text="v0.4.0 · Windows" Foreground="{StaticResource TextMuted}"
                        FontSize="11" DockPanel.Dock="Right" />
         </DockPanel>
     </Grid>
