@@ -157,7 +157,7 @@
                                    FontSize="10" FontWeight="Bold" />
                         <TextBlock Text="Captura passiva do protocolo USB" FontSize="15"
                                    FontWeight="SemiBold" Margin="0,7,0,4" />
-                        <TextBlock Text="Registra somente relatórios HID de entrada nas coleções proprietária, multimídia e telefonia do H510-PRO. Não envia comandos ao headset."
+                        <TextBlock Text="Registra somente relatórios HID de entrada na coleção proprietária 0xF100 do H510-PRO. Não envia comandos ao headset."
                                    TextWrapping="Wrap" Foreground="#B7C9C5" FontSize="12" />
                         <Button x:Name="CaptureZeusButton" Content="Capturar relatórios por 30 segundos"
                                 Click="CaptureZeus_Click" IsEnabled="False" Margin="0,13,0,8" />
@@ -172,7 +172,7 @@
         <DockPanel Grid.Row="5" Margin="0,18,0,0">
             <TextBlock Text="BatteryDesk · Descoberta USB/HID local"
                        Foreground="{StaticResource TextMuted}" FontSize="11" />
-            <TextBlock Text="v0.5.0 · Windows" Foreground="{StaticResource TextMuted}"
+            <TextBlock Text="v0.5.1 · Windows" Foreground="{StaticResource TextMuted}"
                        FontSize="11" DockPanel.Dock="Right" />
         </DockPanel>
     </Grid>
