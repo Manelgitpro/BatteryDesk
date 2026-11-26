@@ -23,7 +23,7 @@ public sealed class DeluxM800BatteryReader
     private const ushort ReceiverProductId = 0x5B2F;
     private const ushort UsagePage = 0xFF00;
     private const ushort Usage = 0x0001;
-    private const ushort HidpStatusSuccess = 0x110000;
+    private const int HidpStatusSuccess = 0x00110000;
     private const uint GenericRead = 0x80000000;
     private const uint GenericWrite = 0x40000000;
     private const uint ShareRead = 0x00000001;
