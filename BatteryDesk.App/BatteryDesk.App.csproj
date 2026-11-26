@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>BatteryDesk</RootNamespace>
     <AssemblyName>BatteryDesk</AssemblyName>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\BatteryDesk.Core\BatteryDesk.Core.csproj" />
