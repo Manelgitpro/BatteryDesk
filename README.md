@@ -1,4 +1,4 @@
-# BatteryDesk v0.6.0
+# BatteryDesk v0.7.0
 
 Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, para identificar periféricos e consultar níveis reais de bateria quando seus protocolos permitem.
 
@@ -17,6 +17,9 @@ Aplicativo desktop para Windows 10/11, desenvolvido em C#/.NET 10 e WPF, para id
 - **Captura HID passiva do Redragon Zeus Pro H510-PRO** (VID:PID `040B:0897`), limitada exclusivamente à coleção proprietária do fabricante `F100`.
 - Cronômetro estimativo de carga do Zeus Pro: inicia quando o Windows detecta a interface USB-C `H510-PRO USB Gaming Headset`, mostra contagem regressiva baseada em aproximadamente 3 horas e encerra quando o cabo é removido.
 - Persistência local do início da sessão para manter a contagem após reiniciar o BatteryDesk, com indicação explícita quando não foi possível observar a remoção do cabo.
+- Ícones individuais na área de notificação do Windows para o Delux M800 Pro e o Redragon Zeus Pro, selecionáveis por checkboxes e com preferências persistidas.
+- Ícone do Delux mostrando a última leitura real autorizada, com horário e indicação quando estiver antiga; o BatteryDesk não consulta o receptor em segundo plano.
+- Ícone do Zeus mostrando percentual estimado (`~`) calculado pelo tempo conectado ao USB-C e pela autonomia anunciada de até 18 horas.
 - Gravação dos relatórios HID de entrada recebidos em arquivo local para análise do protocolo.
 
 ## Cronômetro estimativo de carga do Zeus Pro
@@ -32,6 +35,15 @@ O timer:
 - somente observa eventos de conexão do Windows e enumera descritores HID com acesso de leitura; não lê relatórios de entrada/saída nem envia comandos ao headset.
 
 O tempo de 3 horas é uma estimativa anunciada pela marca, não uma confirmação de 100%. Se o BatteryDesk for fechado enquanto o cabo for removido, o instante exato da remoção não pode ser recuperado; a interface sinaliza a sessão como interrompida e pede para zerar o ciclo.
+## Ícones na área de notificação do Windows
+
+Na seção **Ícones na área de notificação**, o usuário pode escolher individualmente quais dispositivos deseja exibir. Cada seleção cria um ícone próprio com desenho do mouse ou do headset e o número do percentual. As preferências ficam em `%LOCALAPPDATA%\\BatteryDesk\\TrayPreferences.json`.
+
+- **Delux M800 Pro:** exibe a última leitura real que o usuário autorizou durante uma varredura. A leitura não é atualizada em segundo plano; o tooltip informa o horário e marca dados com mais de seis horas como antigos.
+- **Redragon Zeus Pro:** exibe uma estimativa marcada com `~`. Durante a carga, a estimativa cresce linearmente até a referência de aproximadamente 3 horas. Depois de retirar o USB-C, ela diminui linearmente ao longo de até 18 horas, supondo uso contínuo. A autonomia real depende das condições de uso e pode ser menor.
+
+Quando pelo menos um ícone está selecionado, minimizar ou fechar a janela mantém o BatteryDesk na área de notificação. Clique duas vezes em um ícone ou use seu menu de contexto para reabrir a janela ou sair do aplicativo. O Windows pode mover ícones para a área de ícones ocultos; isso é controlado pelas configurações da barra de tarefas.
+
 ## Investigação do Redragon Zeus Pro H510-PRO
 
 A captura passiva pode ser iniciada após uma varredura que encontre a coleção proprietária HID `0xF100`. No primeiro teste, deixe o headset em repouso durante os 30 segundos, sem pressionar botões: queremos registrar somente o que ele transmite espontaneamente.
