@@ -14,7 +14,8 @@ public sealed record DeluxM800BatteryResult(
 
 /// <summary>
 /// Consulta somente o receptor Delux M800 Pro 2,4 GHz conhecido (VID 248A, PID 5B2F).
-/// A consulta usa Feature Report 0C no uso HID FF00:0001; não altera configurações.
+/// A consulta envia um Feature Report 0C de telemetria no uso HID FF00:0001.
+/// Só pode ser executada depois de autorização explícita do usuário. Não envia comandos de configuração.
 /// </summary>
 public sealed class DeluxM800BatteryReader
 {
@@ -31,8 +32,14 @@ public sealed class DeluxM800BatteryReader
     private const uint FileAttributeNormal = 0x00000080;
     private static int _sequence;
 
-    public DeluxM800BatteryResult? Read(IReadOnlyList<HidDeviceInfo> devices)
+    public DeluxM800BatteryResult? Read(
+        IReadOnlyList<HidDeviceInfo> devices,
+        bool explicitlyAuthorizedByUser)
     {
+        if (!explicitlyAuthorizedByUser)
+            throw new UnauthorizedAccessException(
+                "A consulta ativa do Delux exige autorização explícita do usuário em cada execução.");
+
         if (!OperatingSystem.IsWindows())
             throw new PlatformNotSupportedException("A leitura HID está disponível somente no Windows.");
 
@@ -114,6 +121,9 @@ public sealed class DeluxM800BatteryReader
         request[2] = 0x20;
         request[4] = sequence;
 
+        // Único envio ativo permitido neste leitor: pedido de telemetria de bateria
+        // 0C 01 20 para o receptor Delux explicitamente identificado e autorizado.
+        // Nunca incluir aqui comandos de configuração, gravação ou firmware.
         if (HidD_SetFeature(handle, request, request.Length) == 0)
             return null;
 
