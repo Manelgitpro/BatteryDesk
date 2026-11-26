@@ -10,6 +10,7 @@ namespace BatteryDesk;
 internal sealed class ZeusChargeSession
 {
     public static readonly TimeSpan EstimatedFullChargeTime = TimeSpan.FromHours(3);
+    public static readonly TimeSpan EstimatedMaximumRuntime = TimeSpan.FromHours(18);
 
     private readonly string _statePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -90,6 +91,41 @@ internal sealed class ZeusChargeSession
         EndedAt = null;
         WasInterruptedWhileAppClosed = false;
         Save();
+    }
+
+    /// <summary>
+    /// Estimates remaining charge from elapsed USB charging time and then
+    /// elapsed time after disconnect. This is a rough model, not a device reading.
+    /// </summary>
+    public int? GetEstimatedBatteryPercent(DateTimeOffset now)
+    {
+        if (!StartedAt.HasValue || WasInterruptedWhileAppClosed)
+            return null;
+
+        var chargeEnd = EndedAt ?? now;
+        var chargedFor = chargeEnd - StartedAt.Value;
+        if (chargedFor < TimeSpan.Zero)
+            chargedFor = TimeSpan.Zero;
+
+        var estimatedCharge = Math.Clamp(
+            chargedFor.TotalSeconds / EstimatedFullChargeTime.TotalSeconds * 100d,
+            0d,
+            100d);
+
+        if (IsUsbConnected && !EndedAt.HasValue)
+            return (int)Math.Round(estimatedCharge, MidpointRounding.AwayFromZero);
+
+        if (!EndedAt.HasValue)
+            return null;
+
+        var unpluggedFor = now - EndedAt.Value;
+        if (unpluggedFor < TimeSpan.Zero)
+            unpluggedFor = TimeSpan.Zero;
+
+        var estimatedUsage = unpluggedFor.TotalSeconds /
+                             EstimatedMaximumRuntime.TotalSeconds * 100d;
+        var remaining = Math.Clamp(estimatedCharge - estimatedUsage, 0d, 100d);
+        return (int)Math.Round(remaining, MidpointRounding.AwayFromZero);
     }
 
     private void Load()
