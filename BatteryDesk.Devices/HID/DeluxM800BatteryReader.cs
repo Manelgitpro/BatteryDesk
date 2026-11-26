@@ -1,5 +1,4 @@
 using Microsoft.Win32.SafeHandles;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -115,14 +114,14 @@ public sealed class DeluxM800BatteryReader
         request[2] = 0x20;
         request[4] = sequence;
 
-        if (HidD_SetFeature(handle, request) == 0)
+        if (HidD_SetFeature(handle, request, request.Length) == 0)
             return null;
 
         Thread.Sleep(20);
 
         var response = new byte[reportLength];
         response[0] = 0x0C;
-        return HidD_GetFeature(handle, response) != 0 ? response : null;
+        return HidD_GetFeature(handle, response, response.Length) != 0 ? response : null;
     }
 
     [StructLayout(LayoutKind.Sequential)]
