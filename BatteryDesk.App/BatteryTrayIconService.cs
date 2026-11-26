@@ -62,8 +62,10 @@ internal sealed class BatteryTrayIconService : IDisposable
         }
 
         EnsureNotifyIcon(ref _deluxNotifyIcon);
+        var isOldReading = updatedAt.HasValue &&
+                           DateTimeOffset.Now - updatedAt.Value > TimeSpan.FromHours(6);
         var updated = updatedAt.HasValue
-            ? $" · leitura {updatedAt.Value.ToLocalTime():HH:mm}"
+            ? $" · {updatedAt.Value.ToLocalTime():dd/MM HH:mm}" + (isOldReading ? " · antiga" : string.Empty)
             : string.Empty;
         var text = percent.HasValue
             ? $"Delux M800 Pro: {percent.Value}%{updated}"
