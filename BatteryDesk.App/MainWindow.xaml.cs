@@ -1,6 +1,8 @@
 using BatteryDesk.Devices.HID;
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace BatteryDesk;
 
@@ -10,12 +12,204 @@ public partial class MainWindow : Window
     private readonly DeluxM800BatteryReader _deluxReader = new();
     private readonly ZeusProPassiveCapture _zeusCapture = new();
     private readonly ObservableCollection<DeviceRow> _devices = new();
+    private readonly ZeusChargeSession _zeusChargeSession = new();
+    private readonly DispatcherTimer _zeusChargeDisplayTimer = new();
     private IReadOnlyList<HidDeviceInfo> _zeusInterfaces = Array.Empty<HidDeviceInfo>();
+    private HwndSource? _windowSource;
+    private bool _devicePresenceCheckRunning;
+
+    private const int WmDeviceChange = 0x0219;
+    private const int DbtDevNodesChanged = 0x0007;
 
     public MainWindow()
     {
         InitializeComponent();
         DevicesList.ItemsSource = _devices;
+
+        _zeusChargeDisplayTimer.Interval = TimeSpan.FromSeconds(1);
+        _zeusChargeDisplayTimer.Tick += (_, _) => UpdateZeusChargeUi();
+        _zeusChargeDisplayTimer.Start();
+
+        Loaded += MainWindow_Loaded;
+    }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        _windowSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+        _windowSource?.AddHook(WindowProc);
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _zeusChargeDisplayTimer.Stop();
+        _windowSource?.RemoveHook(WindowProc);
+        base.OnClosed(e);
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        await CheckZeusUsbConnectionAsync(isStartup: true);
+    }
+
+    private IntPtr WindowProc(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (message == WmDeviceChange && wParam.ToInt32() == DbtDevNodesChanged)
+            _ = CheckZeusUsbConnectionAsync();
+
+        return IntPtr.Zero;
+    }
+
+    private async Task CheckZeusUsbConnectionAsync(bool isStartup = false)
+    {
+        if (_devicePresenceCheckRunning)
+            return;
+
+        _devicePresenceCheckRunning = true;
+        try
+        {
+            if (!isStartup)
+                await Task.Delay(600);
+
+            var devices = await Task.Run(_enumerator.Enumerate);
+            var cableConnected = IsZeusUsbChargingCablePresent(devices);
+
+            if (isStartup)
+                _zeusChargeSession.Initialize(cableConnected, DateTimeOffset.Now);
+            else
+                _zeusChargeSession.SetUsbConnected(cableConnected, DateTimeOffset.Now);
+
+            UpdateZeusChargeUi();
+        }
+        catch (Exception exception)
+        {
+            ZeusChargeDetailText.Text =
+                $"Não foi possível verificar a conexão USB-C: {exception.Message}";
+        }
+        finally
+        {
+            _devicePresenceCheckRunning = false;
+        }
+    }
+
+    private static bool IsZeusUsbChargingCablePresent(IEnumerable<HidDeviceInfo> devices) =>
+        devices.Any(device =>
+            device.VendorId == 0x040B &&
+            device.ProductId == 0x0897 &&
+            device.Product.Contains("H510-PRO", StringComparison.OrdinalIgnoreCase) &&
+            device.Product.Contains("USB", StringComparison.OrdinalIgnoreCase) &&
+            !device.Product.Contains("Wireless", StringComparison.OrdinalIgnoreCase));
+
+    private void UpdateZeusChargeUi()
+    {
+        var startedAt = _zeusChargeSession.StartedAt;
+        ResetZeusChargeButton.IsEnabled = startedAt.HasValue ||
+                                          _zeusChargeSession.WasInterruptedWhileAppClosed;
+
+        if (!startedAt.HasValue)
+        {
+            ZeusChargeStatusText.Text = _zeusChargeSession.IsUsbConnected
+                ? "USB-C conectado; preparando cronômetro..."
+                : "Aguardando conexão USB-C...";
+            ZeusChargeTimerText.Text = "--:--:--";
+            ZeusChargeProgressText.Text = "Tempo decorrido: aguardando início";
+            ZeusChargeProgressBar.Value = 0;
+            ZeusChargeDetailText.Text =
+                "Conecte o H510-PRO ao computador pelo cabo USB-C. O dongle 2,4 GHz não inicia este cronômetro.";
+            return;
+        }
+
+        if (_zeusChargeSession.WasInterruptedWhileAppClosed)
+        {
+            var lastStart = startedAt.Value.ToLocalTime().ToString("dd/MM HH:mm");
+            ZeusChargeStatusText.Text = "Sessão interrompida com o BatteryDesk fechado";
+            ZeusChargeTimerText.Text = "--:--:--";
+            ZeusChargeProgressText.Text = $"Último início registrado: {lastStart}";
+            ZeusChargeProgressBar.Value = 0;
+            ZeusChargeDetailText.Text =
+                "O cabo foi removido ou a conexão mudou enquanto o aplicativo estava fechado. Não é possível saber quando isso ocorreu. Use “Resetar ciclo” antes da próxima carga.";
+            return;
+        }
+
+        var referenceEnd = _zeusChargeSession.EndedAt ?? DateTimeOffset.Now;
+        var elapsed = referenceEnd - startedAt.Value;
+        if (elapsed < TimeSpan.Zero)
+            elapsed = TimeSpan.Zero;
+
+        var estimate = ZeusChargeSession.EstimatedFullChargeTime;
+        var progress = Math.Clamp(elapsed.TotalSeconds / estimate.TotalSeconds * 100d, 0d, 100d);
+        ZeusChargeProgressBar.Value = progress;
+        ZeusChargeProgressText.Text =
+            $"Tempo contado: {FormatDuration(elapsed)} de {FormatDuration(estimate)}";
+
+        if (_zeusChargeSession.IsUsbConnected && !_zeusChargeSession.EndedAt.HasValue)
+        {
+            var remaining = estimate - elapsed;
+            if (remaining > TimeSpan.Zero)
+            {
+                ZeusChargeStatusText.Text = "Carregamento USB-C detectado";
+                ZeusChargeTimerText.Text = FormatDuration(remaining);
+                var completionTime = startedAt.Value.Add(estimate).ToLocalTime().ToString("HH:mm");
+                ZeusChargeDetailText.Text =
+                    $"Tempo de referência da Redragon: aproximadamente 3 horas. Previsão de conclusão às {completionTime}. " +
+                    "É uma estimativa por tempo, não uma leitura da bateria.";
+                if (_zeusChargeSession.StartedAtAppLaunch)
+                {
+                    ZeusChargeDetailText.Text +=
+                        " O cabo já estava conectado quando o BatteryDesk abriu; o tempo anterior não foi contado.";
+                }
+            }
+            else
+            {
+                ZeusChargeStatusText.Text = "Tempo estimado de carga alcançado";
+                ZeusChargeTimerText.Text = "00:00:00";
+                ZeusChargeDetailText.Text =
+                    "A referência de aproximadamente 3 horas foi alcançada. Isso não confirma 100% de carga. Confira o indicador do headset e desconecte o USB quando confirmar.";
+            }
+        }
+        else if (_zeusChargeSession.EndedAt.HasValue)
+        {
+            ZeusChargeTimerText.Text = FormatDuration(elapsed);
+            if (elapsed >= estimate)
+            {
+                ZeusChargeStatusText.Text = "Cabo USB-C removido após o tempo estimado";
+                ZeusChargeDetailText.Text =
+                    "A sessão ultrapassou a referência de aproximadamente 3 horas. O BatteryDesk não consegue confirmar a carga real ou 100%.";
+            }
+            else
+            {
+                ZeusChargeStatusText.Text = "Carregamento USB-C encerrado";
+                ZeusChargeDetailText.Text =
+                    $"O cabo foi removido após {FormatDuration(elapsed)}. A referência de carga de aproximadamente 3 horas não foi completada; isso não informa a porcentagem real.";
+            }
+        }
+    }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        var hours = Math.Max(0, (int)duration.TotalHours);
+        return $"{hours:00}:{duration.Minutes:00}:{duration.Seconds:00}";
+    }
+
+    private void ResetZeusCharge_Click(object sender, RoutedEventArgs e)
+    {
+        var message = _zeusChargeSession.IsUsbConnected
+            ? "Reiniciar a contagem estimativa a partir de agora? O cabo continuará conectado. Nenhum comando será enviado ao headset."
+            : "Apagar o ciclo de carga registrado e aguardar a próxima conexão USB-C? Nenhum comando será enviado ao headset.";
+
+        var answer = MessageBox.Show(
+            this,
+            message,
+            "Resetar cronômetro do Zeus Pro",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question,
+            MessageBoxResult.No);
+
+        if (answer != MessageBoxResult.Yes)
+            return;
+
+        _zeusChargeSession.Reset(DateTimeOffset.Now);
+        UpdateZeusChargeUi();
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e)
@@ -28,6 +222,10 @@ public partial class MainWindow : Window
         try
         {
             var found = await Task.Run(_enumerator.Enumerate);
+            _zeusChargeSession.SetUsbConnected(
+                IsZeusUsbChargingCablePresent(found), DateTimeOffset.Now);
+            UpdateZeusChargeUi();
+
             _zeusInterfaces = found
                 .Where(device => device.VendorId == 0x040B && device.ProductId == 0x0897)
                 .ToArray();
